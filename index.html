@@ -1591,7 +1591,7 @@ async function sendMessage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': USER_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
         system: SYSTEM_PROMPTS[aiMode],
         messages: chatHistory
@@ -1809,7 +1809,7 @@ async function generateAIQuiz() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': USER_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
         system: `Сен тест жасайтын AI-сың. ТІКЕЛЕЙ JSON ғана жауап бер, басқа ештеңе жазба.`,
         messages: [{
