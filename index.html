@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyOS Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════════ */
+:root {
+  --bg: #05050a;
+  --surface: #0e0e1a;
+  --surface2: #16162a;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.15);
+
+  --primary: #7c3aed;
+  --primary-glow: rgba(124,58,237,0.35);
+  --cyan: #06b6d4;
+  --cyan-glow: rgba(6,182,212,0.25);
+  --green: #10b981;
+  --amber: #f59e0b;
+  --red: #ef4444;
+
+  --text: #f1f0ff;
+  --text-muted: #6b6b8a;
+  --text-dim: #3d3d5c;
+
+  --font: 'Outfit', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+
+  --r: 14px;
+  --r-sm: 8px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Animated Background ── */
+.bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.25;
+  animation: drift 20s ease-in-out infinite;
+}
+.orb-1 { width:500px;height:500px;background:var(--primary);top:-150px;right:-100px;animation-delay:0s; }
+.orb-2 { width:400px;height:400px;background:var(--cyan);bottom:-100px;left:-100px;animation-delay:-7s; }
+.orb-3 { width:300px;height:300px;background:#7c3aed;top:50%;left:50%;animation-delay:-14s;opacity:0.12; }
+
+@keyframes drift {
+  0%,100%{transform:translate(0,0) scale(1)}
+  33%{transform:translate(30px,-40px) scale(1.05)}
+  66%{transform:translate(-20px,30px) scale(0.95)}
+}
+
+/* Grid lines background */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+}
+
+/* ── App Layout ── */
+.app {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: 68px 52px 1fr;
+  min-height: 100vh;
+}
+
+/* ══════════════════════════════
+   HEADER
+══════════════════════════════ */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(5,5,10,0.85);
+  backdrop-filter: blur(24px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  animation: slideDown 0.5s ease;
+}
+
+@keyframes slideDown {
+  from{transform:translateY(-100%);opacity:0}
+  to{transform:translateY(0);opacity:1}
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.logo-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--primary), var(--cyan));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  box-shadow: 0 0 20px var(--primary-glow);
+  animation: pulse-logo 3s ease-in-out infinite;
+}
+@keyframes pulse-logo {
+  0%,100%{box-shadow:0 0 20px var(--primary-glow)}
+  50%{box-shadow:0 0 40px var(--primary-glow), 0 0 60px rgba(124,58,237,0.15)}
+}
+
+.header-stats {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--mono);
+  transition: all 0.3s;
+  animation: fadeInScale 0.5s ease backwards;
+}
+.chip:nth-child(1){animation-delay:0.1s}
+.chip:nth-child(2){animation-delay:0.2s}
+.chip:nth-child(3){animation-delay:0.3s}
+.chip:hover{border-color:var(--border-hover);transform:translateY(-1px)}
+.chip.xp-chip{border-color:rgba(124,58,237,0.3);color:#a78bfa}
+.chip.lvl-chip{border-color:rgba(6,182,212,0.3);color:var(--cyan)}
+.chip.streak-chip{border-color:rgba(245,158,11,0.3);color:var(--amber)}
+
+@keyframes fadeInScale {
+  from{opacity:0;transform:scale(0.8)}
+  to{opacity:1;transform:scale(1)}
+}
+
+/* XP bar in header */
+.xp-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.xp-bar-track {
+  width: 120px;
+  height: 4px;
+  background: var(--surface2);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--cyan));
+  border-radius: 10px;
+  transition: width 0.8s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+
+/* ══════════════════════════════
+   NAV TABS
+══════════════════════════════ */
+.nav {
+  display: flex;
+  align-items: stretch;
+  padding: 0 32px;
+  background: rgba(5,5,10,0.7);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 68px;
+  z-index: 40;
+  gap: 2px;
+}
+
+.tab {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 0 18px;
+  font-family: var(--font);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  letter-spacing: 0.02em;
+  position: relative;
+  white-space: nowrap;
+}
+.tab i{font-size:0.85rem}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--primary)}
+.tab.active i{color:var(--primary)}
+
+/* Tab indicator animation */
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--cyan));
+  animation: tabSlide 0.3s ease;
+}
+@keyframes tabSlide{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+/* ══════════════════════════════
+   MAIN
+══════════════════════════════ */
+main {
+  padding: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.page{display:none}
+.page.active{display:block;animation:pageIn 0.35s cubic-bezier(.4,0,.2,1)}
+
+@keyframes pageIn {
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ══════════════════════════════
+   CARDS
+══════════════════════════════ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 28px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+  animation: cardIn 0.4s ease backwards;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.card:hover::before{opacity:1}
+
+@keyframes cardIn {
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.card:nth-child(2){animation-delay:0.05s}
+.card:nth-child(3){animation-delay:0.1s}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.badge {
+  font-size: 0.62rem;
+  font-family: var(--mono);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.badge-purple{background:rgba(124,58,237,0.2);color:#a78bfa;border:1px solid rgba(124,58,237,0.3)}
+.badge-cyan{background:rgba(6,182,212,0.2);color:var(--cyan);border:1px solid rgba(6,182,212,0.3)}
+.badge-green{background:rgba(16,185,129,0.2);color:var(--green);border:1px solid rgba(16,185,129,0.3)}
+
+/* ══════════════════════════════
+   BUTTONS
+══════════════════════════════ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 10px 20px;
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+  position: relative;
+  overflow: hidden;
+}
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(255,255,255,0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.btn:hover::after{opacity:1}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), #5b21b6);
+  color: white;
+  box-shadow: 0 4px 20px var(--primary-glow);
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 30px var(--primary-glow)}
+.btn-primary:active{transform:translateY(0)}
+
+.btn-cyan {
+  background: linear-gradient(135deg, var(--cyan), #0891b2);
+  color: white;
+  box-shadow: 0 4px 20px var(--cyan-glow);
+}
+.btn-cyan:hover{transform:translateY(-1px);box-shadow:0 6px 30px var(--cyan-glow)}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.btn-outline:hover{border-color:var(--border-hover);color:var(--text)}
+
+.btn-ghost{background:rgba(255,255,255,0.05);color:var(--text-muted)}
+.btn-ghost:hover{background:rgba(255,255,255,0.08);color:var(--text)}
+
+/* ══════════════════════════════
+   INPUTS
+══════════════════════════════ */
+input[type=text],input[type=number],textarea,select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+input:focus,textarea:focus,select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+}
+input::placeholder,textarea::placeholder{color:var(--text-dim)}
+select{cursor:pointer}
+
+.input-row{display:flex;gap:10px;align-items:stretch}
+.input-row input{flex:1}
+
+/* ══════════════════════════════
+   AI CHAT — REAL CLAUDE API
+══════════════════════════════ */
+.chat-area {
+  min-height: 320px;
+  max-height: 450px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+}
+
+.msg {
+  display: flex;
+  gap: 10px;
+  animation: msgIn 0.3s cubic-bezier(.4,0,.2,1);
+}
+@keyframes msgIn {
+  from{opacity:0;transform:translateY(8px) scale(0.98)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+.msg-avatar {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.msg.user .msg-avatar{background:linear-gradient(135deg,var(--primary),#5b21b6);order:2}
+.msg.ai .msg-avatar{background:linear-gradient(135deg,var(--cyan),#0891b2)}
+
+.msg-content {
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+.msg.user .msg-content {
+  background: rgba(124,58,237,0.12);
+  border: 1px solid rgba(124,58,237,0.2);
+  border-radius: 12px 4px 12px 12px;
+  margin-left: auto;
+}
+.msg.ai .msg-content {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px 12px 12px 12px;
+}
+
+.msg-label {
+  font-size: 0.65rem;
+  font-family: var(--mono);
+  color: var(--text-muted);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Typing dots */
+.typing-dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 2px 0;
+}
+.typing-dots span {
+  width: 7px; height: 7px;
+  background: var(--cyan);
+  border-radius: 50%;
+  animation: typingBounce 1.4s ease-in-out infinite;
+  display: block;
+}
+.typing-dots span:nth-child(2){animation-delay:0.2s}
+.typing-dots span:nth-child(3){animation-delay:0.4s}
+@keyframes typingBounce {
+  0%,60%,100%{transform:translateY(0);opacity:0.4}
+  30%{transform:translateY(-6px);opacity:1}
+}
+
+/* AI Mode toggle */
+.ai-modes {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.mode-pill {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  transition: all 0.2s;
+}
+.mode-pill:hover{border-color:var(--border-hover);color:var(--text)}
+.mode-pill.active{background:rgba(124,58,237,0.15);border-color:rgba(124,58,237,0.4);color:#a78bfa}
+
+.chat-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.chat-input-row {
+  display: flex;
+  gap: 10px;
+}
+.chat-input-row textarea {
+  flex: 1;
+  height: 48px;
+  resize: none;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+.send-btn {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--primary), #5b21b6);
+  border: none;
+  border-radius: var(--r-sm);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px var(--primary-glow);
+}
+.send-btn:hover{transform:translateY(-1px) scale(1.05)}
+.send-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+
+/* ══════════════════════════════
+   TIMER
+══════════════════════════════ */
+.timer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.timer-circle-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ring-container {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+.ring-container svg{transform:rotate(-90deg)}
+
+.ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.ring-time {
+  font-family: var(--mono);
+  font-size: 2.8rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  transition: color 0.3s;
+}
+.ring-time.active{color:var(--cyan);text-shadow:0 0 30px var(--cyan-glow)}
+.ring-mode-label{font-size:0.7rem;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:2px}
+
+.timer-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.session-modes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sess-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 10px 14px;
+  text-align: left;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sess-btn:hover{border-color:var(--border-hover);color:var(--text)}
+.sess-btn.active{background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.3);color:var(--cyan)}
+.sess-btn .mins{font-family:var(--mono);font-size:0.75rem}
+
+.timer-btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.timer-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.t-stat {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 12px;
+  text-align: center;
+}
+.t-stat .n{font-family:var(--mono);font-size:1.2rem;font-weight:700;color:var(--cyan)}
+.t-stat .l{font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px}
+
+/* ══════════════════════════════
+   PLANNER
+══════════════════════════════ */
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  margin-bottom: 8px;
+  transition: all 0.25s;
+  background: var(--surface2);
+  animation: taskIn 0.3s ease;
+  cursor: default;
+}
+@keyframes taskIn {
+  from{opacity:0;transform:translateX(-10px)}
+  to{opacity:1;transform:translateX(0)}
+}
+.task-item:hover{border-color:var(--border-hover);transform:translateX(4px)}
+.task-item.done{opacity:0.38;filter:grayscale(0.5)}
+.task-item.done .task-text{text-decoration:line-through;color:var(--text-muted)}
+
+.task-check {
+  width: 22px; height: 22px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  font-size: 0.75rem;
+}
+.task-check:hover{border-color:var(--green);background:rgba(16,185,129,0.05)}
+.task-check.checked{background:var(--green);border-color:var(--green);color:white}
+.task-check.checked::after{content:'✓'}
+
+.p-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.task-text{flex:1;font-size:0.9rem;font-weight:500}
+.xp-tag {
+  font-family:var(--mono);
+  font-size:0.7rem;
+  color:var(--amber);
+  background:rgba(245,158,11,0.1);
+  border:1px solid rgba(245,158,11,0.2);
+  padding:2px 8px;
+  border-radius:4px;
+}
+.del-btn {
+  background:none;border:none;
+  color:var(--text-dim);cursor:pointer;
+  font-size:0.85rem;
+  padding:4px 6px;
+  border-radius:4px;
+  transition:all 0.2s;
+}
+.del-btn:hover{color:var(--red);background:rgba(239,68,68,0.1)}
+
+.planner-input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.planner-input-row input{flex:1}
+.planner-input-row select{width:auto;min-width:130px}
+
+.empty-state {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--text-muted);
+}
+.empty-state i{font-size:2.5rem;opacity:0.2;display:block;margin-bottom:14px}
+
+/* ══════════════════════════════
+   QUIZ (AI-generated)
+══════════════════════════════ */
+.quiz-start-screen {
+  text-align: center;
+  padding: 30px 0;
+}
+.quiz-big-icon{font-size:4rem;margin-bottom:16px;animation:float 3s ease-in-out infinite}
+@keyframes float {
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
+}
+
+.quiz-topic-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 20px 0;
+}
+.topic-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 12px 10px;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.topic-btn .icon{font-size:1.3rem}
+.topic-btn:hover,.topic-btn.selected{background:rgba(124,58,237,0.12);border-color:rgba(124,58,237,0.35);color:#c4b5fd}
+
+.quiz-q-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.q-progress-bar {
+  height: 4px;
+  background: var(--surface2);
+  border-radius: 10px;
+  margin-bottom: 22px;
+  overflow: hidden;
+}
+.q-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--cyan));
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+.q-text{font-size:1.05rem;font-weight:600;line-height:1.55;margin-bottom:20px}
+
+.q-options{display:grid;gap:10px;margin-bottom:16px}
+.q-opt {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 14px 18px;
+  text-align: left;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.q-opt .opt-letter {
+  width: 26px; height: 26px;
+  background: var(--surface);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: var(--mono);
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.q-opt:hover:not(:disabled){border-color:rgba(124,58,237,0.4);background:rgba(124,58,237,0.06)}
+.q-opt:hover:not(:disabled) .opt-letter{background:rgba(124,58,237,0.2);color:#c4b5fd}
+.q-opt.correct{border-color:var(--green);background:rgba(16,185,129,0.08);color:var(--green)}
+.q-opt.correct .opt-letter{background:var(--green);color:white}
+.q-opt.wrong{border-color:var(--red);background:rgba(239,68,68,0.08);color:var(--red)}
+.q-opt.wrong .opt-letter{background:var(--red);color:white}
+
+/* AI generating quiz state */
+.generating-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 50px 20px;
+  gap: 16px;
+}
+.gen-spinner {
+  width: 48px; height: 48px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══════════════════════════════
+   STATS PAGE
+══════════════════════════════ */
+.stats-big-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s;
+  animation: cardIn 0.4s ease backwards;
+}
+.stat-card:hover{border-color:var(--border-hover);transform:translateY(-2px)}
+.stat-card .big-num {
+  font-family: var(--mono);
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.stat-card .lbl{font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em;margin-top:4px}
+
+.rank-progress {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.rank-row {
+  display: flex;
+  gap: 0;
+  margin-top: 16px;
+  position: relative;
+}
+.rank-row::before {
+  content: '';
+  position: absolute;
+  top: 12px; left: 12px; right: 12px;
+  height: 2px;
+  background: var(--surface2);
+}
+
+.rank-node {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+}
+.rank-dot {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface2);
+  display: flex;align-items:center;justify-content:center;
+  font-size:0.75rem;
+  transition:all 0.3s;
+}
+.rank-dot.done{background:var(--primary);border-color:var(--primary);box-shadow:0 0 16px var(--primary-glow)}
+.rank-dot.current{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 16px var(--cyan-glow);animation:pulseDot 2s infinite}
+@keyframes pulseDot {
+  0%,100%{box-shadow:0 0 16px var(--cyan-glow)}
+  50%{box-shadow:0 0 30px var(--cyan-glow),0 0 50px rgba(6,182,212,0.1)}
+}
+.rank-label{font-size:0.68rem;color:var(--text-muted);text-align:center;line-height:1.3}
+
+/* ══════════════════════════════
+   MODAL — LEVEL UP
+══════════════════════════════ */
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(12px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.modal-bg.show{opacity:1;pointer-events:all}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid rgba(124,58,237,0.3);
+  border-radius: 20px;
+  padding: 44px 40px;
+  max-width: 380px;
+  text-align: center;
+  transform: scale(0.9) translateY(20px);
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 20px 80px rgba(124,58,237,0.2);
+}
+.modal-bg.show .modal{transform:scale(1) translateY(0)}
+.modal .trophy{font-size:3.5rem;margin-bottom:12px;display:block;animation:trophySpin 0.6s ease}
+@keyframes trophySpin{
+  0%{transform:rotate(-15deg) scale(0.5)}
+  60%{transform:rotate(10deg) scale(1.1)}
+  100%{transform:rotate(0deg) scale(1)}
+}
+.modal h2{font-size:1.6rem;font-weight:800;margin-bottom:8px}
+.modal p{color:var(--text-muted);font-size:0.9rem;margin-bottom:28px;line-height:1.6}
+
+/* ══════════════════════════════
+   TOAST MENTOR
+══════════════════════════════ */
+.mentor {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 150;
+  max-width: 280px;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(.4,0,.2,1);
+}
+.mentor.visible{transform:translateY(0);opacity:1}
+.mentor-inner {
+  background: var(--surface);
+  border: 1px solid rgba(124,58,237,0.35);
+  border-radius: 14px;
+  padding: 16px 18px;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  box-shadow: 0 12px 40px rgba(124,58,237,0.15);
+  cursor: pointer;
+  position: relative;
+}
+.mentor-inner::before {
+  content: '⚡ StudyOS';
+  display: block;
+  font-size: 0.65rem;
+  font-family: var(--mono);
+  color: var(--primary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.mentor-close {
+  position: absolute;
+  top: 8px; right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 2px 4px;
+}
+
+/* ══════════════════════════════
+   SCROLL & MISC
+══════════════════════════════ */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--primary);border-radius:10px}
+
+.divider{height:1px;background:var(--border);margin:16px 0}
+
+/* Fade in stagger for page content */
+.stagger > * {
+  animation: fadeInUp 0.4s ease backwards;
+}
+.stagger > *:nth-child(1){animation-delay:0.05s}
+.stagger > *:nth-child(2){animation-delay:0.1s}
+.stagger > *:nth-child(3){animation-delay:0.15s}
+.stagger > *:nth-child(4){animation-delay:0.2s}
+.stagger > *:nth-child(5){animation-delay:0.25s}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* highlight for code in AI response */
+.ai-code{
+  background:rgba(124,58,237,0.15);
+  border:1px solid rgba(124,58,237,0.2);
+  border-radius:4px;
+  font-family:var(--mono);
+  font-size:0.85em;
+  padding:1px 6px;
+  color:#c4b5fd;
+}
+
+@media(max-width:680px){
+  header{padding:0 16px}
+  .nav{padding:0 16px}
+  main{padding:20px 16px}
+  .timer-grid{grid-template-columns:1fr}
+  .stats-big-grid{grid-template-columns:repeat(2,1fr)}
+  .quiz-topic-grid{grid-template-columns:repeat(2,1fr)}
+  .xp-bar-wrap{display:none}
+  .header-stats .chip:nth-child(1){display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-canvas">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+<div class="bg-grid"></div>
+
+<!-- API KEY SCREEN -->
+<div id="api-screen" style="position:fixed;inset:0;z-index:9999;background:#05050a;display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;">
+  <div style="background:#0e0e1a;border:1px solid rgba(124,58,237,0.3);border-radius:20px;padding:40px 36px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 80px rgba(124,58,237,0.15);">
+    <div style="font-size:2.5rem;margin-bottom:14px">&#9889;</div>
+    <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:8px;color:#f1f0ff">StudyOS Pro</h2>
+    <p style="color:#6b6b8a;font-size:.88rem;margin-bottom:24px;line-height:1.6">AI Chat жумыс жасауы ушин Anthropic API килтин енгиз.</p>
+    <input type="password" id="api-key-inp" placeholder="sk-ant-api03-..." style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(124,58,237,0.3);border-radius:8px;color:#f1f0ff;font-size:.85rem;padding:12px 14px;outline:none;margin-bottom:16px;" onkeydown="if(event.key==='Enter')startApp()">
+    <button onclick="startApp()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#5b21b6);border:none;border-radius:10px;color:white;font-size:.95rem;font-weight:700;padding:13px;cursor:pointer;margin-bottom:12px;">Кіру</button>
+    <p style="font-size:.75rem;color:#3d3d5c">API кілті жоқ па? <a href="https://console.anthropic.com" target="_blank" style="color:#7c3aed">console.anthropic.com</a></p>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    StudyOS<span style="color:var(--primary)"> Pro</span>
+  </div>
+
+  <div class="header-stats">
+    <div class="chip xp-chip" title="XP">
+      <i class="fas fa-bolt" style="font-size:.7rem"></i>
+      <span id="h-xp">0</span>/100
+    </div>
+    <div class="chip lvl-chip">
+      Lvl&nbsp;<span id="h-lvl">1</span>
+    </div>
+    <div class="chip streak-chip">
+      🔥&nbsp;<span id="h-streak">0</span>
+    </div>
+    <div class="chip" id="h-rank" style="display:none">🎓 Бастаушы</div>
+    <div class="xp-bar-wrap">
+      <div class="xp-bar-track">
+        <div class="xp-bar-fill" id="xp-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ══ TABS ══ -->
+<nav class="nav">
+  <button class="tab active" onclick="openPage('p-ai',this)"><i class="fas fa-robot"></i> AI Көмекші</button>
+  <button class="tab" onclick="openPage('p-timer',this)"><i class="fas fa-clock"></i> Таймер</button>
+  <button class="tab" onclick="openPage('p-planner',this)"><i class="fas fa-check-square"></i> Жоспар</button>
+  <button class="tab" onclick="openPage('p-quiz',this)"><i class="fas fa-brain"></i> AI Тест</button>
+  <button class="tab" onclick="openPage('p-stats',this)"><i class="fas fa-chart-bar"></i> Статистика</button>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main>
+
+  <!-- ══ AI PAGE ══ -->
+  <section id="p-ai" class="page active">
+    <div class="card stagger">
+      <div class="card-head">
+        <div class="card-title">
+          <i class="fas fa-robot" style="color:var(--cyan)"></i>
+          AI Оқу Көмекшісі
+          <span class="badge badge-cyan">Claude API</span>
+        </div>
+      </div>
+
+      <div class="ai-modes">
+        <button class="mode-pill active" onclick="setAIMode('tutor',this)">🎓 Оқытушы</button>
+        <button class="mode-pill" onclick="setAIMode('explainer',this)">💡 Түсіндіруші</button>
+        <button class="mode-pill" onclick="setAIMode('quiz-gen',this)">🧠 Тест жасау</button>
+        <button class="mode-pill" onclick="setAIMode('motivator',this)">🔥 Мотивация</button>
+        <button class="mode-pill" onclick="setAIMode('essay',this)">✍️ Эссе көмек</button>
+      </div>
+
+      <div class="chat-area" id="chat-area"></div>
+
+      <div class="chat-footer">
+        <div class="chat-input-row">
+          <textarea id="ai-input" placeholder="Сұрағыңызды жазыңыз... (Enter — жіберу, Shift+Enter — жол)"></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendMessage()">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-ghost" style="font-size:.75rem;padding:6px 12px" onclick="quickAsk('Математика бойынша есеп шешуге көмектес')">➕ Математика</button>
+          <button class="btn btn-ghost" style="font-size:.75rem;padding:6px 12px" onclick="quickAsk('Физика тақырыбын түсіндір')">⚛️ Физика</button>
+          <button class="btn btn-ghost" style="font-size:.75rem;padding:6px 12px" onclick="quickAsk('Ағылшын тілін үйренуге кеңес бер')">🇬🇧 Ағылшын</button>
+          <button class="btn btn-ghost" style="font-size:.75rem;padding:6px 12px" onclick="quickAsk('Маған тест жасап бер')">🧠 Тест жасау</button>
+          <button class="btn btn-ghost" style="font-size:.75rem;padding:6px 12px;margin-left:auto;opacity:0.5" onclick="changeApiKey()">🔑 API кілтін өзгерту</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ TIMER PAGE ══ -->
+  <section id="p-timer" class="page">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><i class="fas fa-clock" style="color:var(--cyan)"></i> Focus Timer</div>
+        <span class="badge badge-cyan">Pomodoro</span>
+      </div>
+
+      <div class="timer-grid">
+        <div class="timer-circle-wrap">
+          <div class="ring-container">
+            <svg width="220" height="220" viewBox="0 0 220 220">
+              <circle cx="110" cy="110" r="98" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8"/>
+              <circle id="timer-ring" cx="110" cy="110" r="98" fill="none"
+                stroke="url(#ringGrad)" stroke-width="8"
+                stroke-linecap="round"
+                stroke-dasharray="615.75"
+                stroke-dashoffset="0"
+                style="transition:stroke-dashoffset 1s linear"/>
+              <defs>
+                <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="var(--primary)"/>
+                  <stop offset="100%" stop-color="var(--cyan)"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="ring-text">
+              <div class="ring-time" id="timer-display">25:00</div>
+              <div class="ring-mode-label" id="timer-mode-lbl">Фокус</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="timer-side">
+          <div class="session-modes">
+            <button class="sess-btn active" onclick="setTimerMode(25,'Фокус',this)">
+              🎯 Pomodoro <span class="mins">25 мин</span>
+            </button>
+            <button class="sess-btn" onclick="setTimerMode(5,'Демалыс',this)">
+              ☕ Қысқа үзіліс <span class="mins">5 мин</span>
+            </button>
+            <button class="sess-btn" onclick="setTimerMode(15,'Үлкен үзіліс',this)">
+              🌿 Үлкен үзіліс <span class="mins">15 мин</span>
+            </button>
+            <button class="sess-btn" onclick="setTimerMode(50,'Терең оқу',this)">
+              🔥 Терең фокус <span class="mins">50 мин</span>
+            </button>
+          </div>
+
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" id="custom-time" placeholder="Өз уақыт (мин)" min="1" max="180" style="flex:1">
+            <button class="btn btn-outline" style="font-size:.8rem;padding:9px 12px;white-space:nowrap" onclick="setCustomTime()">Қолдану</button>
+          </div>
+
+          <div class="timer-btns">
+            <button class="btn btn-outline" onclick="resetTimer()"><i class="fas fa-undo"></i></button>
+            <button class="btn btn-primary" id="timer-start-btn" onclick="toggleTimer()" style="flex:1">
+              <i class="fas fa-play" id="timer-icon"></i> <span id="timer-btn-txt">START</span>
+            </button>
+          </div>
+
+          <div class="timer-stat-grid">
+            <div class="t-stat"><div class="n" id="ts-sessions">0</div><div class="l">Сеанс</div></div>
+            <div class="t-stat"><div class="n" id="ts-mins">0</div><div class="l">Минут</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ PLANNER PAGE ══ -->
+  <section id="p-planner" class="page">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><i class="fas fa-check-square" style="color:var(--green)"></i> Study Planner</div>
+        <span class="badge badge-green" id="task-count-badge">0 тапсырма</span>
+      </div>
+
+      <div class="planner-input-row">
+        <input type="text" id="task-inp" placeholder="Тапсырма атауы..." onkeydown="if(event.key==='Enter') addTask()">
+        <select id="task-pri">
+          <option value="high">🔴 Жоғары</option>
+          <option value="med" selected>🟡 Орта</option>
+          <option value="low">🟢 Төмен</option>
+        </select>
+        <button class="btn btn-primary" onclick="addTask()"><i class="fas fa-plus"></i> Қосу</button>
+      </div>
+
+      <div id="task-list"></div>
+      <div class="empty-state" id="task-empty">
+        <i class="fas fa-clipboard-list"></i>
+        Тапсырмалар жоқ — алғашқыңызды қосыңыз!
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ QUIZ PAGE (AI-generated) ══ -->
+  <section id="p-quiz" class="page">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><i class="fas fa-brain" style="color:var(--primary)"></i> AI Тест <span class="badge badge-purple">AI генерация</span></div>
+      </div>
+      <div id="quiz-container">
+        <!-- start screen -->
+        <div class="quiz-start-screen" id="quiz-start">
+          <div class="quiz-big-icon">🧠</div>
+          <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:8px">AI Тест генератор</h3>
+          <p style="color:var(--text-muted);margin-bottom:24px;line-height:1.6;max-width:400px;margin-left:auto;margin-right:auto">
+            AI тақырыпты талдап, арнайы сұрақтар жасайды.<br>Тақырып таңдаңыз немесе өзіңіз жазыңыз.
+          </p>
+
+          <div class="quiz-topic-grid">
+            <button class="topic-btn" onclick="selectTopic(this,'Математика')"><span class="icon">📐</span>Математика</button>
+            <button class="topic-btn" onclick="selectTopic(this,'Физика')"><span class="icon">⚛️</span>Физика</button>
+            <button class="topic-btn" onclick="selectTopic(this,'Химия')"><span class="icon">🧪</span>Химия</button>
+            <button class="topic-btn" onclick="selectTopic(this,'Биология')"><span class="icon">🧬</span>Биология</button>
+            <button class="topic-btn" onclick="selectTopic(this,'Тарих')"><span class="icon">📜</span>Тарих</button>
+            <button class="topic-btn" onclick="selectTopic(this,'География')"><span class="icon">🌍</span>География</button>
+            <button class="topic-btn" onclick="selectTopic(this,'Ағылшын тілі')"><span class="icon">🇬🇧</span>Ағылшын</button>
+            <button class="topic-btn" onclick="selectTopic(this,'Информатика')"><span class="icon">💻</span>Информатика</button>
+            <button class="topic-btn" onclick="selectTopic(this,'Қазақ тілі')"><span class="icon">🇰🇿</span>Қазақша</button>
+          </div>
+
+          <div style="display:flex;gap:10px;max-width:440px;margin:0 auto 20px">
+            <input type="text" id="custom-topic" placeholder="Немесе өз тақырыбыңызды жазыңыз...">
+          </div>
+
+          <div style="display:flex;gap:10px;justify-content:center;align-items:center;margin-bottom:16px">
+            <label style="font-size:.85rem;color:var(--text-muted)">Сұрақ саны:</label>
+            <select id="q-count" style="width:80px">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="15">15</option>
+            </select>
+            <label style="font-size:.85rem;color:var(--text-muted)">Қиындық:</label>
+            <select id="q-diff" style="width:110px">
+              <option value="оңай">🟢 Оңай</option>
+              <option value="орта" selected>🟡 Орта</option>
+              <option value="қиын">🔴 Қиын</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary" style="padding:13px 36px;font-size:.95rem" onclick="generateAIQuiz()">
+            <i class="fas fa-magic"></i> AI Тест жасау
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ STATS PAGE ══ -->
+  <section id="p-stats" class="page">
+    <div class="stats-big-grid stagger">
+      <div class="stat-card"><div class="big-num" id="s-totalxp">0</div><div class="lbl">Жалпы XP</div></div>
+      <div class="stat-card"><div class="big-num" id="s-lvl">1</div><div class="lbl">Деңгей</div></div>
+      <div class="stat-card"><div class="big-num" id="s-done">0</div><div class="lbl">Орындалған</div></div>
+      <div class="stat-card"><div class="big-num" id="s-sess">0</div><div class="lbl">Сеанстар</div></div>
+    </div>
+
+    <div class="rank-progress card">
+      <div class="card-title" style="margin-bottom:8px"><i class="fas fa-trophy" style="color:var(--amber)"></i> Дәрежелер жолы</div>
+      <div id="rank-current" style="color:var(--text-muted);font-size:.85rem;margin-bottom:16px"></div>
+      <div class="rank-row" id="rank-row"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px"><i class="fas fa-fire" style="color:var(--amber)"></i> Жетістіктер</div>
+      <div id="achievements-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"></div>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<!-- Level Up Modal -->
+<div class="modal-bg" id="lvl-modal">
+  <div class="modal">
+    <span class="trophy">🏆</span>
+    <h2>Деңгей өсті!</h2>
+    <p>Сіз <strong id="new-rank-name" style="color:#c4b5fd"></strong> болдыңыз!<br>Тамаша жұмыс — жалғастыр!</p>
+    <button class="btn btn-primary" onclick="document.getElementById('lvl-modal').classList.remove('show')">
+      Жалғастыру <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Mentor toast -->
+<div class="mentor" id="mentor">
+  <div class="mentor-inner" onclick="hideMentor()">
+    <button class="mentor-close" onclick="hideMentor()">✕</button>
+    <div id="mentor-msg">Бүгін де оқуды бастайық! 💪</div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════
+   STATE
+═══════════════════════════════ */
+
+let USER_API_KEY = '';
+
+function startApp() {
+  const key = document.getElementById('api-key-inp').value.trim();
+  if (!key || !key.startsWith('sk-ant')) {
+    document.getElementById('api-key-inp').style.borderColor = '#ef4444';
+    document.getElementById('api-key-inp').placeholder = 'Дурыс кілт емес! sk-ant-... деп басталуы керек';
+    return;
+  }
+  USER_API_KEY = key;
+  localStorage.setItem('studyos_apikey', key);
+  document.getElementById('api-screen').style.display = 'none';
+}
+
+function changeApiKey() {
+  localStorage.removeItem('studyos_apikey');
+  USER_API_KEY = '';
+  document.getElementById('api-screen').style.display = 'flex';
+  document.getElementById('api-key-inp').value = '';
+}
+
+// Check saved key
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('studyos_apikey');
+  if (saved && saved.startsWith('sk-ant')) {
+    USER_API_KEY = saved;
+    document.getElementById('api-screen').style.display = 'none';
+  } else {
+    localStorage.removeItem('studyos_apikey');
+    document.getElementById('api-screen').style.display = 'flex';
+  }
+});
+
+let S = JSON.parse(localStorage.getItem('studyos_pro')) || {
+  xp: 0, lvl: 1, streak: 0, totalXP: 0,
+  tasks: [], sessions: 0, focusMinutes: 0,
+  quizzesCompleted: 0, questionsAnswered: 0
+};
+
+const RANKS = [
+  { lvl:1,  name:"Бастаушы 🎓",  emoji:"🎓" },
+  { lvl:3,  name:"Оқушы 📚",    emoji:"📚" },
+  { lvl:5,  name:"Ізденуші 🔎", emoji:"🔎" },
+  { lvl:8,  name:"Маман 🧠",    emoji:"🧠" },
+  { lvl:12, name:"Шебер ⚡",    emoji:"⚡" },
+  { lvl:18, name:"Ұстаз 🌟",    emoji:"🌟" },
+  { lvl:25, name:"Данышпан 🔮", emoji:"🔮" }
+];
+
+const ACHIEVEMENTS = [
+  { id:'first_task', icon:'✅', name:'Алғашқы қадам', desc:'1 тапсырма орындады', check: ()=>S.tasks.filter(t=>t.done).length>=1 },
+  { id:'ten_tasks',  icon:'🏅', name:'10 тапсырма',   desc:'10 тапсырма орындады', check: ()=>S.tasks.filter(t=>t.done).length>=10 },
+  { id:'first_session', icon:'⏱', name:'Фокус!', desc:'1 Pomodoro аяқтады', check: ()=>S.sessions>=1 },
+  { id:'five_sessions', icon:'🔥', name:'Фокус машинасы', desc:'5 сеанс аяқтады', check: ()=>S.sessions>=5 },
+  { id:'level5', icon:'⭐', name:'5-деңгей', desc:'5-деңгейге жетті', check: ()=>S.lvl>=5 },
+  { id:'level10', icon:'🌟', name:'10-деңгей', desc:'10-деңгейге жетті', check: ()=>S.lvl>=10 },
+  { id:'quiz_done', icon:'🧠', name:'Тест тапсырды', desc:'1 AI тест аяқтады', check: ()=>S.quizzesCompleted>=1 },
+  { id:'quiz_master', icon:'🏆', name:'Тест шебері', desc:'5 AI тест аяқтады', check: ()=>S.quizzesCompleted>=5 },
+  { id:'ask_ai', icon:'🤖', name:'AI сусы', desc:'AI-ге 10 сұрақ қойды', check: ()=>S.questionsAnswered>=10 }
+];
+
+function save() { localStorage.setItem('studyos_pro', JSON.stringify(S)); }
+
+function getRank() {
+  let r = RANKS[0];
+  for (let x of RANKS) { if (S.lvl >= x.lvl) r = x; }
+  return r;
+}
+
+function gainXP(n) {
+  S.xp += n;
+  S.totalXP += n;
+  let leveled = false;
+  while (S.xp >= 100) {
+    S.xp -= 100;
+    S.lvl++;
+    leveled = true;
+  }
+  if (leveled) {
+    triggerLevelUp();
+  }
+  save();
+  updateUI();
+}
+
+function triggerLevelUp() {
+  confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 }, colors: ['#7c3aed','#06b6d4','#f59e0b'] });
+  document.getElementById('new-rank-name').textContent = getRank().name;
+  document.getElementById('lvl-modal').classList.add('show');
+}
+
+function updateUI() {
+  const r = getRank();
+  document.getElementById('xp-fill').style.width = S.xp + '%';
+  document.getElementById('h-xp').textContent = S.xp;
+  document.getElementById('h-lvl').textContent = S.lvl;
+  document.getElementById('h-streak').textContent = S.streak;
+
+  const rankChip = document.getElementById('h-rank');
+  rankChip.style.display = 'flex';
+  rankChip.textContent = r.name;
+
+  // stats page
+  document.getElementById('s-totalxp').textContent = S.totalXP;
+  document.getElementById('s-lvl').textContent = S.lvl;
+  document.getElementById('s-done').textContent = S.tasks.filter(t=>t.done).length;
+  document.getElementById('s-sess').textContent = S.sessions;
+  document.getElementById('ts-sessions').textContent = S.sessions;
+  document.getElementById('ts-mins').textContent = S.focusMinutes;
+
+  renderRankProgress();
+  renderAchievements();
+}
+
+function renderRankProgress() {
+  const row = document.getElementById('rank-row');
+  const cur = document.getElementById('rank-current');
+  const r = getRank();
+  cur.textContent = `Қазіргі дәреже: ${r.name} (${S.lvl}-деңгей)`;
+
+  row.innerHTML = RANKS.map(rank => {
+    const done = S.lvl > rank.lvl;
+    const current = S.lvl === rank.lvl || (rank === RANKS[RANKS.length-1] && S.lvl >= rank.lvl);
+    const cls = done ? 'done' : current ? 'current' : '';
+    return `<div class="rank-node">
+      <div class="rank-dot ${cls}">${done?'✓':rank.emoji}</div>
+      <div class="rank-label">${rank.name.split(' ')[0]}<br><span style="font-family:var(--mono);font-size:.6rem;color:var(--text-dim)">Lv${rank.lvl}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function renderAchievements() {
+  const grid = document.getElementById('achievements-grid');
+  grid.innerHTML = ACHIEVEMENTS.map(a => {
+    const done = a.check();
+    return `<div style="background:var(--surface2);border:1px solid ${done?'rgba(124,58,237,0.3)':'var(--border)'};border-radius:10px;padding:14px;text-align:center;opacity:${done?1:0.4};transition:all 0.3s">
+      <div style="font-size:1.5rem;margin-bottom:6px">${a.icon}</div>
+      <div style="font-size:.78rem;font-weight:700;margin-bottom:3px">${a.name}</div>
+      <div style="font-size:.68rem;color:var(--text-muted)">${a.desc}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════
+   NAVIGATION
+═══════════════════════════════ */
+function openPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ═══════════════════════════════
+   AI CHAT — Real Anthropic API
+═══════════════════════════════ */
+let aiMode = 'tutor';
+let chatHistory = [];
+
+const SYSTEM_PROMPTS = {
+  tutor: `Сен StudyOS платформасының AI Оқытушысысың. Қазақстандық студенттерге барлық пәндер бойынша оқыға, үй тапсырмаларын орындауға, түсіну мен жаттауға көмектесесің. 
+
+Ережелер:
+- МІНДЕТТІ ТҮРДЕ БАРЛЫҚ сұрақтарға жауап бер — "білмеймін" деме
+- Жауаптарыңды Қазақ тілінде бер (егер сұрақ орысша немесе ағылшынша болса, сол тілде жауап бер)
+- Қысқа, нақты, студентке түсінікті тілде сөйле
+- Мысалдар мен формулалар қолдан
+- Математикада қадам-қадам шешіп бер
+- Мотивациялы бол, +XP деп айт`,
+
+  explainer: `Сен кез-келген тақырыпты өте қарапайым тілде, нақты мысалдармен түсіндіретін AI Түсіндіруші-сің. "Неге?", "Қалай?", "Нені?" деген сұрақтарға жауап бер. 5 жасар балаға түсіндіргендей сезімді жасайтын аналогия қолдан. Барлық пәндерді жариялы түрде пайдалы мазмұн ретінде ұсын.`,
+
+  'quiz-gen': `Сен тест/сұрақтар жасайтын AI-сың. Пайдаланушы тақырып берсе, ДЕРЕУ JSON форматта 5 сұрақ жас:
+{"questions":[{"q":"сұрақ","opts":["a","b","c","d"],"a":0,"explanation":"түсінік"},...]}
+Тек JSON жауап бер, басқа ештеңе жазба. Барлық сұрақтар мен жауаптар қазақ тілінде болсын.`,
+
+  motivator: `Сен StudyOS-тың мотивациялы коучысың. Студентке оқуға деген ынта, шабыт беретін хабарламалар, кеңестер жаз. Қазақ тілінде, жылы, қолдаушы тонда. Мақал-мәтел, цитаталар қолдан. Streakты, XP жинауды ынталандыр.`,
+
+  essay: `Сен эссе жазуға, мазмұндауға, реферат дайындауға көмектесетін AI Жазу-Ментор-сың. Тақырып берілсе: план, тезис, кіріспе, негізгі бөлім, қорытынды ұсын. Редакциялауда грамматика, стиль бойынша кеңес бер.`
+};
+
+function setAIMode(mode, btn) {
+  aiMode = mode;
+  document.querySelectorAll('.mode-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  chatHistory = [];
+  const area = document.getElementById('chat-area');
+  area.innerHTML = '';
+  addAIMessage(`Режим өзгерді: **${btn.textContent}**. Сұрағыңызды жазыңыз! 🚀`);
+}
+
+function quickAsk(txt) {
+  document.getElementById('ai-input').value = txt;
+  sendMessage();
+}
+
+function addUserMsg(txt) {
+  const area = document.getElementById('chat-area');
+  const d = document.createElement('div');
+  d.className = 'msg user';
+  d.innerHTML = `<div class="msg-content"><div class="msg-label">СЕН</div>${escapeHtml(txt)}</div><div class="msg-avatar"><i class="fas fa-user"></i></div>`;
+  area.appendChild(d);
+  area.scrollTop = area.scrollHeight;
+}
+
+function addAIMessage(txt) {
+  const area = document.getElementById('chat-area');
+  const d = document.createElement('div');
+  d.className = 'msg ai';
+  d.innerHTML = `<div class="msg-avatar"><i class="fas fa-robot"></i></div><div class="msg-content"><div class="msg-label">AI ⚡</div><div class="msg-body">${formatAIText(txt)}</div></div>`;
+  area.appendChild(d);
+  area.scrollTop = area.scrollHeight;
+  return d;
+}
+
+function showTyping() {
+  const area = document.getElementById('chat-area');
+  const d = document.createElement('div');
+  d.className = 'msg ai';
+  d.id = 'typing-indicator';
+  d.innerHTML = `<div class="msg-avatar"><i class="fas fa-robot"></i></div><div class="msg-content"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  area.appendChild(d);
+  area.scrollTop = area.scrollHeight;
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatAIText(txt) {
+  return txt
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<span class="ai-code">$1</span>')
+    .replace(/\n/g, '<br>');
+}
+
+async function sendMessage() {
+  const inp = document.getElementById('ai-input');
+  const btn = document.getElementById('send-btn');
+  const txt = inp.value.trim();
+  if (!txt || btn.disabled) return;
+
+  inp.value = '';
+  btn.disabled = true;
+  S.questionsAnswered++;
+  save();
+
+  addUserMsg(txt);
+  chatHistory.push({ role: 'user', content: txt });
+
+  showTyping();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': USER_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPTS[aiMode],
+        messages: chatHistory
+      })
+    });
+
+    const data = await res.json();
+    const reply = data.content?.map(c=>c.text||'').join('') || 'Қате орын алды. Қайталаңыз.';
+
+    document.getElementById('typing-indicator')?.remove();
+    chatHistory.push({ role: 'assistant', content: reply });
+
+    // Check if it's quiz-gen mode and response is JSON
+    if (aiMode === 'quiz-gen') {
+      try {
+        const clean = reply.replace(/```json|```/g,'').trim();
+        const parsed = JSON.parse(clean);
+        if (parsed.questions) {
+          addAIMessage('Тест дайын! Тест бетіне өтіп бастаңыз 👇');
+          pendingAIQuiz = parsed.questions;
+          gainXP(5);
+          btn.disabled = false;
+          showMentor('AI тестіңіз дайын! "AI Тест" бетіне өтіңіз 🧠');
+          return;
+        }
+      } catch(e) {}
+    }
+
+    addAIMessage(reply);
+    gainXP(5);
+  } catch(err) {
+    document.getElementById('typing-indicator')?.remove();
+    addAIMessage('Байланыс қатесі. API кілтін тексеріңіз немесе желіңізді тексеріңіз.');
+  }
+
+  btn.disabled = false;
+}
+
+document.getElementById('ai-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+// Initial greeting
+setTimeout(() => {
+  addAIMessage('Сәлем! Мен StudyOS AI Көмекшісімін ⚡\n\nМатематика, физика, химия, тарих — кез-келген пәнде көмектесемін. Тест де жасай аламын!\n\nНемен бастаймыз?');
+}, 300);
+
+/* ═══════════════════════════════
+   TIMER
+═══════════════════════════════ */
+let timerInterval = null;
+let timerSecs = 25 * 60;
+let timerTotal = 25 * 60;
+let timerRunning = false;
+const RING_CIRC = 2 * Math.PI * 98; // 615.75
+
+function updateRing() {
+  const progress = timerSecs / timerTotal;
+  document.getElementById('timer-ring').setAttribute('stroke-dashoffset', RING_CIRC * (1 - progress));
+  const m = Math.floor(timerSecs/60).toString().padStart(2,'0');
+  const s = (timerSecs%60).toString().padStart(2,'0');
+  document.getElementById('timer-display').textContent = `${m}:${s}`;
+}
+
+function setTimerMode(min, label, btn) {
+  if (timerRunning) return;
+  document.querySelectorAll('.sess-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  timerSecs = min * 60;
+  timerTotal = min * 60;
+  document.getElementById('timer-mode-lbl').textContent = label;
+  updateRing();
+}
+
+function setCustomTime() {
+  const v = parseInt(document.getElementById('custom-time').value);
+  if (!v || v<1 || v>180) return;
+  timerSecs = v * 60;
+  timerTotal = v * 60;
+  document.querySelectorAll('.sess-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('timer-mode-lbl').textContent = 'Өзгертілген';
+  updateRing();
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timer-icon').className = 'fas fa-play';
+    document.getElementById('timer-btn-txt').textContent = 'START';
+    document.getElementById('timer-display').classList.remove('active');
+  } else {
+    timerRunning = true;
+    document.getElementById('timer-icon').className = 'fas fa-pause';
+    document.getElementById('timer-btn-txt').textContent = 'PAUSE';
+    document.getElementById('timer-display').classList.add('active');
+    timerInterval = setInterval(() => {
+      timerSecs--;
+      updateRing();
+      if (timerSecs <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        document.getElementById('timer-icon').className = 'fas fa-play';
+        document.getElementById('timer-btn-txt').textContent = 'START';
+        document.getElementById('timer-display').classList.remove('active');
+        S.sessions++;
+        S.focusMinutes += Math.round(timerTotal/60);
+        gainXP(20);
+        showMentor('Тамаша! Фокус сеансы аяқталды! +20 XP 🎉');
+      }
+    }, 1000);
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSecs = timerTotal;
+  updateRing();
+  document.getElementById('timer-icon').className = 'fas fa-play';
+  document.getElementById('timer-btn-txt').textContent = 'START';
+  document.getElementById('timer-display').classList.remove('active');
+}
+
+// Init ring
+document.getElementById('timer-ring').setAttribute('stroke-dasharray', RING_CIRC);
+document.getElementById('timer-ring').setAttribute('stroke-dashoffset', 0);
+updateRing();
+
+/* ═══════════════════════════════
+   PLANNER
+═══════════════════════════════ */
+const PCOLS = { high: '#ef4444', med: '#f59e0b', low: '#10b981' };
+
+function addTask() {
+  const name = document.getElementById('task-inp').value.trim();
+  if (!name) return;
+  const pri = document.getElementById('task-pri').value;
+  S.tasks.unshift({ id: Date.now(), name, pri, done: false });
+  document.getElementById('task-inp').value = '';
+  save();
+  renderTasks();
+  updateUI();
+}
+
+function toggleTask(id) {
+  const t = S.tasks.find(x=>x.id===id);
+  if (!t) return;
+  if (!t.done) { t.done = true; gainXP(10); showMentor('Жарайсың! +10 XP ✅'); }
+  else { t.done = false; }
+  save();
+  renderTasks();
+  updateUI();
+}
+
+function deleteTask(id) {
+  S.tasks = S.tasks.filter(x=>x.id!==id);
+  save();
+  renderTasks();
+  updateUI();
+}
+
+function renderTasks() {
+  const list = document.getElementById('task-list');
+  const empty = document.getElementById('task-empty');
+  const badge = document.getElementById('task-count-badge');
+
+  badge.textContent = `${S.tasks.length} тапсырма`;
+
+  if (!S.tasks.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  list.innerHTML = S.tasks.map(t => `
+    <div class="task-item ${t.done?'done':''}">
+      <div class="task-check ${t.done?'checked':''}" onclick="toggleTask(${t.id})"></div>
+      <div class="p-dot" style="background:${PCOLS[t.pri]}"></div>
+      <div class="task-text">${escapeHtml(t.name)}</div>
+      <div class="xp-tag">+10 XP</div>
+      <button class="del-btn" onclick="deleteTask(${t.id})"><i class="fas fa-times"></i></button>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════
+   AI QUIZ (generated by Claude)
+═══════════════════════════════ */
+let pendingAIQuiz = null;
+let selectedTopic = '';
+let quizData = [];
+let qIdx = 0, qScore = 0, qAnswered = false;
+
+function selectTopic(btn, topic) {
+  document.querySelectorAll('.topic-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedTopic = topic;
+  document.getElementById('custom-topic').value = topic;
+}
+
+async function generateAIQuiz() {
+  const customTopic = document.getElementById('custom-topic').value.trim();
+  const topic = customTopic || selectedTopic;
+  if (!topic) { showMentor('Тақырып таңдаңыз немесе жазыңыз!'); return; }
+
+  const count = document.getElementById('q-count').value;
+  const diff = document.getElementById('q-diff').value;
+
+  document.getElementById('quiz-container').innerHTML = `
+    <div class="generating-state">
+      <div class="gen-spinner"></div>
+      <div style="font-weight:600">"${topic}" бойынша ${count} сұрақ жасалуда...</div>
+      <div style="color:var(--text-muted);font-size:.85rem">AI талдап, сұрақтар дайындауда ⚡</div>
+    </div>`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': USER_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        system: `Сен тест жасайтын AI-сың. ТІКЕЛЕЙ JSON ғана жауап бер, басқа ештеңе жазба.`,
+        messages: [{
+          role: 'user',
+          content: `"${topic}" тақырыбы бойынша ${diff} қиындықтағы ${count} сұрақ жаса. JSON форматы:
+{"questions":[{"q":"сұрақ мәтіні","opts":["а жауап","б жауап","в жауап","г жауап"],"a":0,"explanation":"дұрыс жауаптың түсіндірмесі"},...]}
+"a" — дұрыс жауаптың индексі (0-3). Барлығы қазақ тілінде.`
+        }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content?.map(c=>c.text||'').join('') || '';
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    if (!parsed.questions?.length) throw new Error('no questions');
+    quizData = parsed.questions;
+    qIdx = 0; qScore = 0;
+    renderQuizQuestion();
+  } catch(e) {
+    document.getElementById('quiz-container').innerHTML = `
+      <div style="text-align:center;padding:40px">
+        <div style="font-size:2rem;margin-bottom:12px">😔</div>
+        <p style="color:var(--red);margin-bottom:16px">Тест жасалмады. API қатесі немесе байланыс жоқ.</p>
+        <button class="btn btn-primary" onclick="resetQuiz()">Қайтадан</button>
+      </div>`;
+  }
+}
+
+function renderQuizQuestion() {
+  if (qIdx >= quizData.length) {
+    finishQuiz(); return;
+  }
+  const q = quizData[qIdx];
+  const prog = (qIdx / quizData.length) * 100;
+  const LETTERS = ['A','B','C','D'];
+
+  document.getElementById('quiz-container').innerHTML = `
+    <div>
+      <div class="quiz-q-header">
+        <span style="font-family:var(--mono);font-size:.8rem;color:var(--text-muted)">${qIdx+1} / ${quizData.length}</span>
+        <span style="font-family:var(--mono);font-size:.8rem;color:var(--amber)">⭐ ${qScore} дұрыс</span>
+      </div>
+      <div class="q-progress-bar"><div class="q-progress-fill" style="width:${prog}%"></div></div>
+      <div class="q-text">${escapeHtml(q.q)}</div>
+      <div class="q-options">
+        ${q.opts.map((o,i)=>`
+          <button class="q-opt" onclick="answerQuiz(${i})" id="qopt-${i}">
+            <span class="opt-letter">${LETTERS[i]}</span>${escapeHtml(o)}
+          </button>`).join('')}
+      </div>
+      <div id="q-explanation" style="display:none;margin-top:12px;padding:14px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:8px;font-size:.88rem;line-height:1.6"></div>
+    </div>`;
+  qAnswered = false;
+}
+
+function answerQuiz(i) {
+  if (qAnswered) return;
+  qAnswered = true;
+
+  const q = quizData[qIdx];
+  document.querySelectorAll('.q-opt').forEach((b,idx)=>{
+    b.disabled = true;
+    if (idx === q.a) b.classList.add('correct');
+    else if (idx === i && i !== q.a) b.classList.add('wrong');
+  });
+
+  if (i === q.a) { qScore++; gainXP(15); }
+
+  const expl = document.getElementById('q-explanation');
+  if (expl) {
+    expl.style.display = 'block';
+    expl.innerHTML = `<strong>${i===q.a?'✅ Дұрыс!':'❌ Қате!'}</strong> ${escapeHtml(q.explanation || '')}`;
+  }
+
+  setTimeout(() => { qIdx++; renderQuizQuestion(); }, 2000);
+}
+
+function finishQuiz() {
+  const pct = Math.round((qScore/quizData.length)*100);
+  S.quizzesCompleted++;
+  const bonus = qScore * 15;
+  gainXP(bonus);
+  save();
+
+  const msg = pct>=80?'Керемет нәтиже!':pct>=50?'Жаман емес!':'Жалғастыр!';
+  document.getElementById('quiz-container').innerHTML = `
+    <div style="text-align:center;padding:30px 0">
+      <div style="font-size:3.5rem;margin-bottom:16px">${pct>=80?'🏆':pct>=50?'💪':'📚'}</div>
+      <h3 style="font-size:1.5rem;font-weight:800;margin-bottom:8px">${qScore}/${quizData.length} дұрыс</h3>
+      <div style="font-size:2.5rem;font-weight:900;font-family:var(--mono);background:linear-gradient(135deg,var(--primary),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px">${pct}%</div>
+      <p style="color:var(--text-muted);margin-bottom:8px">${msg}</p>
+      <p style="color:var(--amber);font-family:var(--mono);font-size:.85rem;margin-bottom:24px">+${bonus} XP жиналды!</p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="btn btn-primary" onclick="resetQuiz()">Жаңа тест</button>
+        <button class="btn btn-outline" onclick="qIdx=0;qScore=0;renderQuizQuestion()">Қайталау</button>
+      </div>
+    </div>`;
+
+  confetti({ particleCount: pct >= 70 ? 100 : 40, spread: 80, origin: { y: 0.6 } });
+}
+
+function resetQuiz() {
+  quizData = [];
+  document.getElementById('quiz-container').innerHTML = document.createElement('div').innerHTML;
+  // Re-render start screen by reloading section
+  location.reload();
+}
+
+/* ═══════════════════════════════
+   MENTOR TOAST
+═══════════════════════════════ */
+const HINTS = [
+  'Pomodoro техникасы: 25 мин оқы, 5 мин дем ал! ⏱',
+  'Жаңа тапсырма қосып, XP жина! 📋',
+  'AI-ге сұрақ қой — барлық пәнде көмектеседі 🤖',
+  'Streak-ті үзбе — күн сайын кіріп оқы! 🔥',
+  'AI Тест — жаттаудың ең тиімді жолы 🧠',
+  'Тамаша оқуды жалғастырасың! 💪'
+];
+
+let mentorTimeout;
+
+function showMentor(msg) {
+  document.getElementById('mentor-msg').textContent = msg || HINTS[Math.floor(Math.random()*HINTS.length)];
+  document.getElementById('mentor').classList.add('visible');
+  clearTimeout(mentorTimeout);
+  mentorTimeout = setTimeout(hideMentor, 6000);
+}
+
+function hideMentor() {
+  document.getElementById('mentor').classList.remove('visible');
+}
+
+setTimeout(() => showMentor(), 2000);
+
+/* ═══════════════════════════════
+   INIT
+═══════════════════════════════ */
+updateUI();
+renderTasks();
+</script>
+</body>
+</html>
