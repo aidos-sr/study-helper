@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="kk" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Helper — Ақылды Көмекші</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Unbounded:wght@300;600;900&family=Noto+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080f;--sf:#0d1020;--sf2:#131729;--sf3:#1a2040;
+  --ac:#00e5ff;--ac2:#7b5ef8;--ac3:#ff6b6b;--ac4:#22c55e;
+  --tx:#e8eaf6;--mu:#5c6299;--mu2:#8890c4;
+  --bd:rgba(0,229,255,.1);--bd2:rgba(255,255,255,.07);
+  --glow:0 0 28px rgba(0,229,255,.18);--r:6px;--nav:62px;
+}
+[data-theme="light"]{
+  --bg:#f0f2ff;--sf:#fff;--sf2:#e8eaf6;--sf3:#dde0f7;
+  --tx:#1a1d3a;--mu:#8890c4;--mu2:#5c6299;
+  --bd:rgba(0,150,200,.12);--bd2:rgba(0,0,0,.07);
+  --glow:0 0 28px rgba(0,180,255,.1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:'Noto Sans',sans-serif;
+  font-size:15px;line-height:1.6;overflow-x:hidden;transition:background .3s,color .3s}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+p{color:var(--mu2)}
+strong{font-weight:600;color:var(--tx)}
+
+/* GRID BG */
+.gbg{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);
+  background-size:44px 44px}
+[data-theme="light"] .gbg{background-image:linear-gradient(rgba(0,130,200,.05) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,130,200,.05) 1px,transparent 1px)}
+.orb{position:fixed;border-radius:50%;pointer-events:none;filter:blur(90px);z-index:0}
+.o1{width:600px;height:600px;background:var(--ac2);opacity:.1;top:-200px;right:-150px}
+.o2{width:400px;height:400px;background:var(--ac);opacity:.07;bottom:-100px;left:-100px}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+@keyframes tdot{0%,80%,100%{transform:scale(.8);opacity:.5}40%{transform:scale(1);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes countUp{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+.au{animation:fadeUp .55s ease both}
+.d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}.d4{animation-delay:.4s}
+
+/* NAVBAR */
+.nav{position:fixed;top:0;left:0;right:0;z-index:300;height:var(--nav);
+  display:flex;align-items:center;justify-content:space-between;padding:0 28px;
+  background:rgba(7,8,15,.92);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--bd2);transition:background .3s}
+[data-theme="light"] .nav{background:rgba(240,242,255,.94)}
+.logo{font-family:'Unbounded',sans-serif;font-weight:900;font-size:1.05rem;
+  letter-spacing:-.02em;display:flex;align-items:center;gap:8px;cursor:pointer}
+.ldot{width:9px;height:9px;border-radius:50%;background:var(--ac);
+  box-shadow:0 0 10px var(--ac);animation:pulse 2s infinite;flex-shrink:0}
+.lac{color:var(--ac)}
+.nlinks{display:flex;gap:2px}
+.nb{padding:6px 12px;border-radius:var(--r);font-size:.8rem;color:var(--mu2);
+  font-weight:500;background:transparent;border:none;transition:color .2s,background .2s}
+.nb:hover{color:var(--tx);background:var(--bd2)}
+.nb.on{color:var(--ac)}
+.nact{display:flex;align-items:center;gap:7px}
+.tbtn{width:34px;height:34px;border-radius:50%;background:var(--sf2);
+  border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;transition:background .2s}
+.tbtn:hover{background:var(--sf3)}
+.nghost{padding:6px 13px;border-radius:var(--r);border:1px solid var(--bd2);
+  color:var(--mu2);font-size:.78rem;background:transparent;transition:all .2s}
+.nghost:hover{border-color:var(--ac);color:var(--ac)}
+.npri{padding:6px 14px;border-radius:var(--r);background:var(--ac);
+  color:var(--bg);font-size:.78rem;font-weight:600;border:none;transition:all .2s}
+.npri:hover{box-shadow:var(--glow);transform:translateY(-1px)}
+.ubadge{font-family:'Space Mono',monospace;font-size:.7rem;color:var(--ac);
+  padding:3px 9px;border:1px solid var(--bd);border-radius:20px;
+  max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.burger{display:none;background:transparent;border:1px solid var(--bd2);
+  padding:5px 9px;border-radius:4px;color:var(--tx);font-size:1rem}
+
+/* PAGE SYSTEM */
+.page{display:none;min-height:100vh;position:relative;z-index:1;padding-top:var(--nav)}
+.page.on{display:block}
+.chatwrap{display:none;height:100vh;position:relative;z-index:1;padding-top:var(--nav)}
+.chatwrap.on{display:flex}
+
+/* SHARED */
+.cont{max-width:1140px;margin:0 auto;padding:0 28px}
+.sec{padding:80px 0;position:relative}
+.sl{font-family:'Space Mono',monospace;font-size:.68rem;color:var(--ac);
+  letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px}
+.st{font-family:'Unbounded',sans-serif;font-weight:600;
+  font-size:clamp(1.7rem,3.5vw,2.6rem);letter-spacing:-.025em;
+  line-height:1.15;margin-bottom:44px;color:var(--tx)}
+.grad{background:linear-gradient(135deg,var(--ac),var(--ac2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.bpri{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border:none;
+  padding:12px 26px;border-radius:var(--r);font-size:.86rem;font-weight:600;
+  transition:all .2s;box-shadow:0 0 22px rgba(0,229,255,.18);cursor:pointer}
+.bpri:hover{transform:translateY(-2px);box-shadow:0 0 38px rgba(0,229,255,.3)}
+.bgh{display:inline-flex;align-items:center;justify-content:center;
+  background:transparent;border:1px solid var(--bd2);color:var(--mu2);
+  padding:12px 26px;border-radius:var(--r);font-size:.86rem;font-weight:500;
+  transition:all .2s;cursor:pointer}
+.bgh:hover{border-color:var(--tx);color:var(--tx)}
+.fw{width:100%}
+.card{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--r)}
+
+/* ===================== HOME ===================== */
+.hero{min-height:calc(100vh - var(--nav));display:flex;align-items:center;
+  justify-content:center;padding:50px 28px 70px;text-align:center;position:relative;overflow:hidden}
+.hgrid{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(0,229,255,.04) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,229,255,.04) 1px,transparent 1px);
+  background-size:44px 44px;pointer-events:none}
+.hinner{position:relative;z-index:1;max-width:700px}
+.htag{display:inline-block;font-family:'Space Mono',monospace;font-size:.7rem;
+  color:var(--ac);border:1px solid var(--bd);padding:4px 13px;
+  border-radius:2px;margin-bottom:26px;letter-spacing:.1em}
+.hh1{font-family:'Unbounded',sans-serif;font-weight:900;
+  font-size:clamp(2.8rem,8vw,5.2rem);letter-spacing:-.04em;line-height:1.0;color:var(--tx)}
+.hsub{margin:20px auto 0;max-width:480px;color:var(--mu2);font-size:.97rem;line-height:1.75}
+.hact{display:flex;gap:12px;justify-content:center;margin-top:34px;flex-wrap:wrap}
+.hstats{display:flex;align-items:center;justify-content:center;gap:22px;margin-top:48px;flex-wrap:wrap}
+.hs{text-align:center}
+.hsn{display:block;font-family:'Unbounded',sans-serif;font-weight:900;font-size:1.5rem;
+  background:linear-gradient(135deg,var(--ac),var(--ac2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hsl{font-size:.72rem;color:var(--mu);margin-top:2px}
+.hsdiv{width:1px;height:32px;background:var(--bd2)}
+
+/* Feature grid */
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.fc{background:var(--sf);padding:30px 24px;border:1px solid transparent;
+  transition:all .3s;position:relative;overflow:hidden}
+.fc::after{content:'';position:absolute;inset:0;opacity:0;
+  background:linear-gradient(135deg,rgba(0,229,255,.05),transparent);transition:opacity .3s}
+.fc:hover{border-color:var(--bd);transform:translateY(-2px)}
+.fc:hover::after{opacity:1}
+.fic{width:42px;height:42px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:1.2rem;margin-bottom:16px}
+.fc h3{font-family:'Unbounded',sans-serif;font-size:.86rem;font-weight:600;
+  margin-bottom:8px;color:var(--tx)}
+.fc p{font-size:.82rem;line-height:1.65}
+
+/* Steps */
+.srow{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
+.step{background:var(--sf);border:1px solid var(--bd2);padding:30px 24px;
+  border-radius:var(--r);text-align:center;flex:1;min-width:180px;max-width:230px;
+  transition:border-color .3s}
+.step:hover{border-color:var(--ac)}
+.stepn{font-family:'Unbounded',sans-serif;font-size:1.8rem;font-weight:900;
+  color:var(--bd2);margin-bottom:12px;line-height:1;transition:color .3s}
+.step:hover .stepn{color:var(--ac)}
+.step h3{font-family:'Unbounded',sans-serif;font-size:.88rem;font-weight:600;margin-bottom:7px;color:var(--tx)}
+.step p{font-size:.78rem}
+.sarr{font-size:1.4rem;color:var(--mu)}
+.ctaband{padding:64px 28px;background:linear-gradient(180deg,transparent,var(--sf) 50%,transparent)}
+
+/* ===================== CHAT ===================== */
+.csb{width:252px;min-width:252px;height:100%;background:var(--sf);
+  border-right:1px solid var(--bd2);display:flex;flex-direction:column;overflow:hidden}
+.sbh{padding:14px 13px 11px;border-bottom:1px solid var(--bd2);
+  display:flex;align-items:center;justify-content:space-between}
+.newbtn{width:28px;height:28px;border-radius:50%;background:var(--ac);
+  color:var(--bg);border:none;font-size:1.1rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;transition:all .2s}
+.newbtn:hover{transform:scale(1.1);box-shadow:var(--glow)}
+.hlist{flex:1;overflow-y:auto;padding:5px}
+.hlist::-webkit-scrollbar{width:3px}
+.hlist::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+.hempty{padding:24px 12px;text-align:center}
+.hempty p{color:var(--mu2);font-size:.8rem;margin-bottom:3px}
+.hempty small{color:var(--mu);font-size:.7rem}
+.hi{padding:8px 10px;border-radius:var(--r);cursor:pointer;
+  border:1px solid transparent;margin-bottom:3px;transition:background .2s}
+.hi:hover{background:var(--sf2);border-color:var(--bd2)}
+.hi.on{background:var(--sf3);border-color:var(--ac)}
+.hit{font-size:.78rem;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hid{font-size:.66rem;color:var(--mu);margin-top:2px;font-family:'Space Mono',monospace}
+
+.cmain{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.ctop{padding:10px 16px;border-bottom:1px solid var(--bd2);
+  display:flex;align-items:center;gap:8px;background:var(--sf);flex-shrink:0}
+.mobbtn{display:none;background:transparent;border:1px solid var(--bd2);
+  padding:4px 8px;border-radius:4px;color:var(--tx)}
+.mbadge{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;
+  font-size:.68rem;color:var(--mu);margin-left:auto}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--ac4);
+  box-shadow:0 0 6px var(--ac4);animation:pulse 2s infinite}
+
+/* Mode selector */
+.modes{display:flex;gap:5px;align-items:center;padding:0 4px}
+.modesel{padding:5px 11px;border-radius:20px;font-size:.72rem;font-weight:600;
+  border:1px solid var(--bd2);background:transparent;color:var(--mu2);
+  transition:all .2s;white-space:nowrap}
+.modesel:hover{border-color:var(--ac);color:var(--ac)}
+.modesel.on{background:var(--ac);color:var(--bg);border-color:var(--ac)}
+.clrbtn{background:transparent;border:none;font-size:.9rem;color:var(--mu);
+  transition:color .2s;padding:4px;margin-left:4px}
+.clrbtn:hover{color:var(--ac3)}
+
+.msa{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:14px}
+.msa::-webkit-scrollbar{width:4px}
+.msa::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+
+.welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:40px 20px;gap:10px;animation:fadeUp .5s ease both}
+.wico{font-size:2.6rem}
+.welcome h2{font-family:'Unbounded',sans-serif;font-size:1.1rem;font-weight:600;color:var(--tx)}
+.welcome p{font-size:.83rem;max-width:340px;line-height:1.7}
+.qps{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:5px;max-width:440px}
+.qp{padding:7px 13px;background:var(--sf);border:1px solid var(--bd2);color:var(--tx);
+  border-radius:20px;font-size:.76rem;transition:all .2s}
+.qp:hover{border-color:var(--ac);color:var(--ac);background:rgba(0,229,255,.06)}
+
+.msg{display:flex;gap:8px;animation:fadeUp .3s ease both;max-width:780px;width:100%}
+.msg.user{flex-direction:row-reverse;margin-left:auto}
+.mav{width:28px;height:28px;min-width:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;font-weight:700;font-family:'Space Mono',monospace}
+.aiav{background:linear-gradient(135deg,var(--ac2),var(--ac));color:#fff}
+.uav{background:var(--sf2);border:1px solid var(--bd2);color:var(--mu)}
+.mb{max-width:78%;padding:10px 14px;border-radius:var(--r);font-size:.86rem;line-height:1.65}
+.aib{background:var(--sf);border:1px solid var(--bd2);border-top-left-radius:0;color:var(--tx)}
+.ub{background:linear-gradient(135deg,rgba(123,94,248,.18),rgba(0,229,255,.1));
+  border:1px solid rgba(123,94,248,.25);border-top-right-radius:0;color:var(--tx)}
+.msg-wrap{display:flex;flex-direction:column;gap:4px;max-width:78%}
+.msg.user .msg-wrap{align-items:flex-end}
+
+/* Rating */
+.rate-row{display:flex;gap:6px;align-items:center;padding-left:2px}
+.rbtn{background:transparent;border:1px solid var(--bd2);padding:3px 9px;
+  border-radius:12px;font-size:.72rem;color:var(--mu);transition:all .2s}
+.rbtn:hover{border-color:var(--ac4);color:var(--ac4)}
+.rbtn.good{background:rgba(34,197,94,.12);border-color:var(--ac4);color:var(--ac4)}
+.rbtn.bad{background:rgba(255,107,107,.12);border-color:var(--ac3);color:var(--ac3)}
+
+.typing span{display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:var(--mu);margin:0 2px;animation:tdot 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+
+.ciarea{padding:12px 16px;border-top:1px solid var(--bd2);background:var(--sf);flex-shrink:0}
+.iwrap{display:flex;gap:8px;align-items:flex-end;background:var(--sf2);
+  border:1px solid var(--bd2);border-radius:10px;padding:8px 10px;transition:border-color .2s}
+.iwrap:focus-within{border-color:var(--ac)}
+.cta{flex:1;background:transparent;border:none;color:var(--tx);font-family:inherit;
+  font-size:.87rem;resize:none;outline:none;max-height:140px;min-height:22px;line-height:1.5}
+.cta::placeholder{color:var(--mu)}
+.sndbtn{width:32px;height:32px;background:var(--ac);border:none;border-radius:5px;
+  color:var(--bg);display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .2s}
+.sndbtn:hover{box-shadow:var(--glow);transform:scale(1.05)}
+.sndbtn:disabled{opacity:.4;transform:none;box-shadow:none}
+.ihint{font-size:.66rem;color:var(--mu);margin-top:6px}
+
+/* ===================== AI TOOLS ===================== */
+.tools-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.tool-card{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--r);
+  padding:28px;transition:border-color .3s;position:relative;overflow:hidden}
+.tool-card:hover{border-color:var(--ac)}
+.tool-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--ac),var(--ac2));opacity:0;transition:opacity .3s}
+.tool-card:hover::before{opacity:1}
+.tc-icon{font-size:1.8rem;margin-bottom:14px}
+.tc-title{font-family:'Unbounded',sans-serif;font-size:.9rem;font-weight:600;
+  color:var(--tx);margin-bottom:6px}
+.tc-desc{font-size:.82rem;color:var(--mu2);margin-bottom:18px;line-height:1.6}
+.tc-area{width:100%;padding:10px 12px;background:var(--sf2);border:1px solid var(--bd2);
+  border-radius:var(--r);color:var(--tx);font-family:inherit;font-size:.85rem;
+  resize:vertical;min-height:90px;outline:none;transition:border-color .2s;margin-bottom:10px}
+.tc-area:focus{border-color:var(--ac)}
+.tc-area::placeholder{color:var(--mu)}
+.tc-result{margin-top:12px;padding:12px;background:var(--sf2);border:1px solid var(--bd);
+  border-radius:var(--r);font-size:.83rem;line-height:1.7;color:var(--tx);
+  display:none;white-space:pre-wrap}
+.tc-result.show{display:block;animation:fadeUp .3s ease both}
+.tc-sel{width:100%;padding:9px 12px;background:var(--sf2);border:1px solid var(--bd2);
+  border-radius:var(--r);color:var(--tx);font-family:inherit;font-size:.85rem;
+  outline:none;margin-bottom:10px;cursor:pointer}
+.tc-sel option{background:var(--sf2)}
+.tloading{display:inline-flex;gap:3px;align-items:center;color:var(--mu);font-size:.8rem}
+.tloading::before{content:'';width:14px;height:14px;border:2px solid var(--bd2);
+  border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite;margin-right:4px}
+
+/* ===================== STATS ===================== */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.stat-card{background:var(--sf);padding:28px 22px;text-align:center}
+.stat-n{font-family:'Unbounded',sans-serif;font-size:2rem;font-weight:900;
+  background:linear-gradient(135deg,var(--ac),var(--ac2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:countUp .5s ease both}
+.stat-l{font-size:.78rem;color:var(--mu);margin-top:6px}
+.chart-wrap{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--r);padding:24px;margin-top:20px}
+.chart-title{font-family:'Space Mono',monospace;font-size:.72rem;color:var(--ac);margin-bottom:18px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar-label{font-size:.75rem;color:var(--mu2);width:80px;text-align:right;flex-shrink:0}
+.bar-bg{flex:1;height:8px;background:var(--sf2);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac2),var(--ac));
+  transition:width 1s cubic-bezier(.4,0,.2,1)}
+.bar-val{font-size:.72rem;color:var(--mu);font-family:'Space Mono',monospace;width:30px;flex-shrink:0}
+.rating-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.rating-card{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--r);padding:20px;text-align:center}
+.rnum{font-family:'Unbounded',sans-serif;font-size:1.6rem;font-weight:900}
+.good-c{color:var(--ac4)}
+.bad-c{color:var(--ac3)}
+.rlabel{font-size:.75rem;color:var(--mu);margin-top:4px}
+
+/* ===================== SCIENCE ===================== */
+.sci-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start}
+.sci-text p{font-size:.9rem;line-height:1.8;margin-bottom:12px}
+.tcard{background:var(--sf);border:1px solid var(--bd2);padding:26px;border-radius:var(--r)}
+.trow{display:flex;justify-content:space-between;align-items:center;
+  padding:11px 0;border-bottom:1px solid var(--bd2)}
+.trow:last-child{border-bottom:none}
+.tn{font-size:.82rem;color:var(--mu2)}
+.tv{font-family:'Space Mono',monospace;font-size:.72rem;color:var(--mu)}
+.tv.ac{color:var(--ac)}
+.steps-sci{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.step-sci{display:flex;gap:14px;padding:16px;background:var(--sf);
+  border:1px solid var(--bd2);border-radius:var(--r);align-items:flex-start;
+  transition:border-color .2s}
+.step-sci:hover{border-color:var(--ac)}
+.step-sci-n{font-family:'Unbounded',sans-serif;font-size:1.2rem;font-weight:900;
+  color:var(--ac);flex-shrink:0;line-height:1;margin-top:2px}
+.step-sci strong{font-size:.86rem;display:block;margin-bottom:3px}
+.step-sci p{font-size:.8rem;margin:0}
+
+/* ===================== AUTH ===================== */
+.awrap{min-height:calc(100vh - var(--nav));display:flex;align-items:center;
+  justify-content:center;padding:36px 20px;position:relative}
+.acard{background:var(--sf);border:1px solid var(--bd2);border-radius:12px;
+  padding:36px 32px;width:100%;max-width:410px;
+  box-shadow:0 24px 80px rgba(0,0,0,.3);position:relative;z-index:1}
+.alogo{text-align:center;font-size:2.2rem;margin-bottom:12px}
+.atitle{font-family:'Unbounded',sans-serif;font-size:1.35rem;font-weight:900;
+  text-align:center;color:var(--tx);margin-bottom:4px}
+.asub{text-align:center;font-size:.8rem;color:var(--mu);margin-bottom:24px}
+.atabs{display:flex;background:var(--sf2);border-radius:var(--r);padding:3px;margin-bottom:22px}
+.atab{flex:1;padding:8px;border:none;background:transparent;color:var(--mu);
+  font-size:.8rem;font-weight:500;border-radius:4px;transition:all .2s}
+.atab.on{background:var(--ac);color:var(--bg);font-weight:600}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:.75rem;color:var(--mu2);margin-bottom:5px;letter-spacing:.04em}
+.fi{width:100%;padding:10px 12px;background:var(--sf2);border:1px solid var(--bd2);
+  color:var(--tx);border-radius:var(--r);font-size:.87rem;font-family:inherit;
+  outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--ac)}
+.fi::placeholder{color:var(--mu)}
+.ferr{min-height:16px;font-size:.75rem;color:var(--ac3);margin-bottom:10px}
+.adiv{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--mu);font-size:.75rem}
+.adiv::before,.adiv::after{content:'';flex:1;height:1px;background:var(--bd2)}
+.bgoogle{width:100%;padding:10px;background:var(--sf2);border:1px solid var(--bd2);
+  color:var(--tx);border-radius:var(--r);font-size:.82rem;font-weight:500;
+  display:flex;align-items:center;justify-content:center;gap:9px;transition:all .2s}
+.bgoogle:hover{border-color:var(--ac);background:var(--sf3)}
+.asw{text-align:center;font-size:.78rem;color:var(--mu);margin-top:16px}
+.asw a{color:var(--ac);font-weight:500;cursor:pointer}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--bd2);padding:32px 28px;position:relative;z-index:1}
+.fin{max-width:1140px;margin:0 auto;display:flex;align-items:center;
+  justify-content:space-between;flex-wrap:wrap;gap:14px}
+.flinks{display:flex;gap:20px}
+.flinks button{font-size:.76rem;color:var(--mu);background:transparent;border:none;transition:color .2s}
+.flinks button:hover{color:var(--ac)}
+.fcopy{font-family:'Space Mono',monospace;font-size:.66rem;color:var(--mu)}
+
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:start}
+.atext p{font-size:.9rem;line-height:1.8;margin-bottom:12px}
+.af-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.afi{display:flex;gap:11px;padding:16px;background:var(--sf);
+  border:1px solid var(--bd2);border-radius:var(--r);transition:border-color .2s;align-items:flex-start}
+.afi:hover{border-color:var(--ac)}
+.afic{font-size:1rem;flex-shrink:0;margin-top:2px}
+.afi strong{font-size:.84rem;display:block;margin-bottom:3px}
+.afi p{font-size:.77rem;margin:0}
+
+/* RESPONSIVE */
+@media(max-width:960px){
+  .fgrid{grid-template-columns:1fr 1fr}
+  .about-grid,.sci-grid{grid-template-columns:1fr}
+  .af-grid{grid-template-columns:1fr}
+  .tools-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .rating-wrap{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+  .nav{padding:0 14px}
+  .nlinks{display:none}
+  .burger{display:flex;align-items:center}
+  .fgrid{grid-template-columns:1fr}
+  .srow{flex-direction:column;align-items:stretch}
+  .sarr{text-align:center;transform:rotate(90deg)}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .csb{position:fixed;left:-260px;top:var(--nav);bottom:0;z-index:250;width:252px}
+  .csb.open{left:0;box-shadow:4px 0 20px rgba(0,0,0,.4)}
+  .mobbtn{display:flex}
+  .acard{padding:24px 18px}
+  .fin{flex-direction:column;align-items:center;text-align:center}
+}
+</style>
+</head>
+<body>
+<div class="gbg"></div>
+<div class="orb o1"></div>
+<div class="orb o2"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo" onclick="go('home')">
+    <span class="ldot"></span>Smart<span class="lac">Helper</span>
+  </div>
+  <div class="nlinks" id="nlinks">
+    <button class="nb on" data-p="home"    onclick="go('home')">Басты</button>
+    <button class="nb"    data-p="chat"    onclick="go('chat')">Чат</button>
+    <button class="nb"    data-p="tools"   onclick="go('tools')">AI Құралдар</button>
+    <button class="nb"    data-p="stats"   onclick="go('stats')">Статистика</button>
+    <button class="nb"    data-p="science" onclick="go('science')">Ғылым</button>
+    <button class="nb"    data-p="about"   onclick="go('about')">Туралы</button>
+  </div>
+  <div class="nact">
+    <button class="tbtn" id="tbtn">☀️</button>
+    <div id="anav" style="display:flex;gap:6px">
+      <button class="nghost" onclick="go('auth','login')">Кіру</button>
+      <button class="npri"   onclick="go('auth','register')">Тіркелу</button>
+    </div>
+    <div id="unav" style="display:none;align-items:center;gap:7px">
+      <span class="ubadge" id="ubadge"></span>
+      <button class="nghost" id="loutbtn">Шығу</button>
+    </div>
+  </div>
+  <button class="burger" id="burger">☰</button>
+</nav>
+
+<!-- =========================================================
+     HOME
+========================================================= -->
+<div class="page on" id="pg-home">
+  <section class="hero">
+    <div class="hgrid"></div>
+    <div class="hinner">
+      <div class="htag au">// Ғылыми жоба · 2025</div>
+      <h1 class="hh1 au d1">Ақылды<br><span class="grad">Көмекші</span></h1>
+      <p class="hsub au d2">Жасанды интеллект элементтері негізінде пайдаланушыға интеллектуалды көмек көрсететін веб-қосымша.</p>
+      <div class="hact au d3">
+        <button class="bpri" onclick="go('chat')">Чатты ашу →</button>
+        <button class="bgh"  onclick="go('tools')">AI Құралдар</button>
+      </div>
+      <div class="hstats au d4">
+        <div class="hs"><span class="hsn">6</span><span class="hsl">Бет</span></div>
+        <div class="hsdiv"></div>
+        <div class="hs"><span class="hsn">4</span><span class="hsl">AI режим</span></div>
+        <div class="hsdiv"></div>
+        <div class="hs"><span class="hsn">3+</span><span class="hsl">Тіл</span></div>
+        <div class="hsdiv"></div>
+        <div class="hs"><span class="hsn">24/7</span><span class="hsl">Қолжетімді</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="cont">
+      <div class="sl">// Мүмкіндіктер</div>
+      <h2 class="st">Smart Helper не<br>істей алады?</h2>
+      <div class="fgrid">
+        <div class="fc"><div class="fic" style="background:rgba(0,229,255,.1)">🧠</div><h3>Ақылды чат</h3><p>Кез-келген тақырып бойынша сұхбат. 4 режим: жалпы, математика, тарих, ғылым.</p></div>
+        <div class="fc"><div class="fic" style="background:rgba(123,94,248,.1)">🛠️</div><h3>AI Құралдар</h3><p>Мәтін қысқарту, аударма, қателерді түзету, идея генерациясы — бөлек бет.</p></div>
+        <div class="fc"><div class="fic" style="background:rgba(255,107,107,.1)">📊</div><h3>Статистика</h3><p>Қанша сұрақ қойдым, жауап рейтингі, пән бойынша диаграмма.</p></div>
+        <div class="fc"><div class="fic" style="background:rgba(34,197,94,.1)">⭐</div><h3>Жауап бағалау</h3><p>Әр AI жауапты 👍/👎 деп бағалауға болады. Нәтиже статистикада көрінеді.</p></div>
+        <div class="fc"><div class="fic" style="background:rgba(0,229,255,.1)">🔐</div><h3>Firebase Auth</h3><p>Email + Google OAuth арқылы тіркелу. Чат тарихы Firebase-ке сақталады.</p></div>
+        <div class="fc"><div class="fic" style="background:rgba(123,94,248,.1)">🔬</div><h3>Ғылыми бөлім</h3><p>AI дегеніміз не, Claude API қалай жұмыс істейді — жобаның ғылыми негізі.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" style="background:linear-gradient(180deg,transparent,var(--sf) 30%,var(--sf) 70%,transparent)">
+    <div class="cont">
+      <div class="sl">// Қалай жұмыс істейді?</div>
+      <h2 class="st">4 қадам</h2>
+      <div class="srow">
+        <div class="step"><div class="stepn">01</div><h3>Тіркелу</h3><p>Email немесе Google арқылы</p></div>
+        <div class="sarr">→</div>
+        <div class="step"><div class="stepn">02</div><h3>Режим таңдау</h3><p>Жалпы, математика, тарих...</p></div>
+        <div class="sarr">→</div>
+        <div class="step"><div class="stepn">03</div><h3>Сұрақ қою</h3><p>Чат немесе AI Құралдар</p></div>
+        <div class="sarr">→</div>
+        <div class="step"><div class="stepn">04</div><h3>Бағалау</h3><p>👍/👎 және статистика</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ctaband">
+    <div class="cont" style="text-align:center">
+      <h2 class="st" style="margin-bottom:12px">Бүгін бастаңыз</h2>
+      <p style="color:var(--mu);margin-bottom:32px;max-width:420px;margin-inline:auto">Тегін. Тіркелусіз де жұмыс істейді.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="bpri" onclick="go('auth','register')">Тіркелу — тегін</button>
+        <button class="bgh"  onclick="go('chat')">Алдымен сынап көру</button>
+      </div>
+    </div>
+  </div>
+  <footer class="footer"><div class="fin">
+    <div class="logo"><span class="ldot"></span>Smart<span class="lac">Helper</span></div>
+    <div class="flinks">
+      <button onclick="go('home')">Басты</button><button onclick="go('chat')">Чат</button>
+      <button onclick="go('tools')">Құралдар</button><button onclick="go('science')">Ғылым</button>
+      <button onclick="go('about')">Туралы</button>
+    </div>
+    <p class="fcopy">© 2025 Smart Helper · Ғылыми жоба</p>
+  </div></footer>
+</div>
+
+<!-- =========================================================
+     CHAT
+========================================================= -->
+<div class="chatwrap" id="pg-chat">
+  <aside class="csb" id="csb">
+    <div class="sbh">
+      <span class="sl" style="margin:0">// Тарих</span>
+      <button class="newbtn" id="newbtn">+</button>
+    </div>
+    <div class="hlist" id="hlist">
+      <div class="hempty" id="hempty"><p>Тарих жоқ</p><small>Тіркелген соң сақталады</small></div>
+    </div>
+  </aside>
+  <main class="cmain">
+    <div class="ctop">
+      <button class="mobbtn" id="mobbtn">☰</button>
+      <div class="modes" id="modes">
+        <button class="modesel on" data-mode="general"  onclick="setMode(this)">🌐 Жалпы</button>
+        <button class="modesel"    data-mode="math"     onclick="setMode(this)">📐 Математика</button>
+        <button class="modesel"    data-mode="history"  onclick="setMode(this)">📜 Тарих</button>
+        <button class="modesel"    data-mode="science"  onclick="setMode(this)">🔬 Ғылым</button>
+      </div>
+      <div class="mbadge"><span class="sdot"></span>claude-sonnet</div>
+      <button class="clrbtn" id="clrbtn">🗑</button>
+    </div>
+    <div class="msa" id="msa">
+      <div class="welcome" id="wlc">
+        <div class="wico">🤖</div>
+        <h2>Сәлем! Мен Smart Helper</h2>
+        <p>Режим таңдап, сұрағыңызды жазыңыз.<br>Оқу, ғылым, математика — бәрі бойынша.</p>
+        <div class="qps">
+          <button class="qp" onclick="qpu(this)">📐 sin(30°) = неше?</button>
+          <button class="qp" onclick="qpu(this)">📝 Эссе жазуға көмектес</button>
+          <button class="qp" onclick="qpu(this)">🌍 Қазақстан тарихы</button>
+          <button class="qp" onclick="qpu(this)">⚛️ Атом құрылысы</button>
+        </div>
+      </div>
+    </div>
+    <div class="ciarea">
+      <div class="iwrap">
+        <textarea class="cta" id="cta" placeholder="Сұрағыңызды жазыңыз..." rows="1"></textarea>
+        <button class="sndbtn" id="sndbtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+      <p class="ihint">Enter — жіберу · Shift+Enter — жаңа жол</p>
+    </div>
+  </main>
+</div>
+
+<!-- =========================================================
+     AI TOOLS
+========================================================= -->
+<div class="page" id="pg-tools">
+  <section class="sec">
+    <div class="cont">
+      <div class="sl">// Жасанды интеллект құралдары</div>
+      <h2 class="st">AI Құралдар</h2>
+      <div class="tools-grid">
+
+        <div class="tool-card">
+          <div class="tc-icon">✂️</div>
+          <div class="tc-title">Мәтін қысқарту</div>
+          <div class="tc-desc">Ұзын мәтінді қысқа және нақты мазмұнға айналдырады</div>
+          <textarea class="tc-area" id="sumIn" placeholder="Қысқартылатын мәтінді енгізіңіз..."></textarea>
+          <button class="bpri" style="font-size:.8rem;padding:9px 18px" onclick="runTool('sum')">Қысқарту →</button>
+          <div class="tc-result" id="sumOut"></div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tc-icon">🌐</div>
+          <div class="tc-title">Аударма</div>
+          <div class="tc-desc">Мәтінді таңдалған тілге аударады</div>
+          <select class="tc-sel" id="transLang">
+            <option value="қазақ тіліне">Қазақ тіліне</option>
+            <option value="орыс тіліне">Орыс тіліне</option>
+            <option value="ағылшын тіліне">Ағылшын тіліне</option>
+          </select>
+          <textarea class="tc-area" id="transIn" placeholder="Аударылатын мәтінді енгізіңіз..."></textarea>
+          <button class="bpri" style="font-size:.8rem;padding:9px 18px" onclick="runTool('trans')">Аудару →</button>
+          <div class="tc-result" id="transOut"></div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tc-icon">✍️</div>
+          <div class="tc-title">Қателерді түзету</div>
+          <div class="tc-desc">Грамматикалық және стильдік қателерді анықтап, түзетеді</div>
+          <textarea class="tc-area" id="fixIn" placeholder="Тексерілетін мәтінді енгізіңіз..."></textarea>
+          <button class="bpri" style="font-size:.8rem;padding:9px 18px" onclick="runTool('fix')">Түзету →</button>
+          <div class="tc-result" id="fixOut"></div>
+        </div>
+
+        <div class="tool-card">
+          <div class="tc-icon">💡</div>
+          <div class="tc-title">Идея генерациясы</div>
+          <div class="tc-desc">Тақырып бойынша шығармашыл идеялар ұсынады</div>
+          <textarea class="tc-area" id="ideaIn" placeholder="Тақырып немесе мақсат жазыңыз..." style="min-height:70px"></textarea>
+          <button class="bpri" style="font-size:.8rem;padding:9px 18px" onclick="runTool('idea')">Идея ұсын →</button>
+          <div class="tc-result" id="ideaOut"></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+  <footer class="footer"><div class="fin">
+    <div class="logo"><span class="ldot"></span>Smart<span class="lac">Helper</span></div>
+    <div class="flinks">
+      <button onclick="go('home')">Басты</button><button onclick="go('chat')">Чат</button><button onclick="go('about')">Туралы</button>
+    </div>
+    <p class="fcopy">© 2025 Smart Helper</p>
+  </div></footer>
+</div>
+
+<!-- =========================================================
+     STATS
+========================================================= -->
+<div class="page" id="pg-stats">
+  <section class="sec">
+    <div class="cont">
+      <div class="sl">// Пайдалану статистикасы</div>
+      <h2 class="st">Статистика</h2>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-n" id="stTotal">0</div><div class="stat-l">Жалпы сұрақ</div></div>
+        <div class="stat-card"><div class="stat-n" id="stToday">0</div><div class="stat-l">Бүгін</div></div>
+        <div class="stat-card"><div class="stat-n good-c" id="stGood">0</div><div class="stat-l">👍 Жақсы жауап</div></div>
+        <div class="stat-card"><div class="stat-n bad-c"  id="stBad">0</div><div class="stat-l">👎 Нашар жауап</div></div>
+      </div>
+
+      <div class="chart-wrap" style="margin-top:24px">
+        <div class="chart-title">// Пән бойынша сұрақтар</div>
+        <div id="barChart"></div>
+      </div>
+
+      <div class="rating-wrap">
+        <div class="rating-card">
+          <div class="stat-n good-c" id="rPct">–</div>
+          <div class="rlabel">Оң бағалар үлесі</div>
+        </div>
+        <div class="rating-card">
+          <div class="stat-n" id="rStreak" style="color:var(--ac)">0</div>
+          <div class="rlabel">Қатарынан күн</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <footer class="footer"><div class="fin">
+    <div class="logo"><span class="ldot"></span>Smart<span class="lac">Helper</span></div>
+    <div class="flinks">
+      <button onclick="go('home')">Басты</button><button onclick="go('chat')">Чат</button><button onclick="go('about')">Туралы</button>
+    </div>
+    <p class="fcopy">© 2025 Smart Helper</p>
+  </div></footer>
+</div>
+
+<!-- =========================================================
+     SCIENCE
+========================================================= -->
+<div class="page" id="pg-science">
+  <section class="sec" style="padding-top:60px">
+    <div class="cont">
+      <div class="sl au">// Ғылыми негіз</div>
+      <h1 class="hh1 au d1" style="font-size:clamp(2rem,5vw,3.2rem)">
+        Жасанды <span class="grad">Интеллект</span>
+      </h1>
+    </div>
+  </section>
+
+  <section class="sec" style="padding-top:20px">
+    <div class="cont sci-grid">
+      <div class="sci-text">
+        <div class="sl">// AI дегеніміз не?</div>
+        <h2 class="st" style="font-size:clamp(1.4rem,2.5vw,2rem)">Жасанды интеллект</h2>
+        <p>Жасанды интеллект (ЖИ) — компьютерлік жүйелердің адам зиятына тән міндеттерді орындай алу қабілеті. Бұған оқу, сөйлесу, суреттерді тану, шешім қабылдау жатады.</p>
+        <p>Заманауи ЖИ жүйелері <strong>терең оқыту (deep learning)</strong> және <strong>трансформер архитектурасы</strong> негізінде жұмыс істейді. Миллиардтаған параметрлері бар нейрондық желілер арқылы адамның тілін түсінеді.</p>
+        <p>Smart Helper жобасы <strong>Anthropic Claude API</strong> пайдаланады — бұл ең қауіпсіз және дәл жауап беретін LLM модельдерінің бірі.</p>
+      </div>
+      <div class="tcard">
+        <div class="sl" style="margin-bottom:16px">// Техникалық мәліметтер</div>
+        <div class="trow"><span class="tn">Модель</span><span class="tv ac">Claude Sonnet 4</span></div>
+        <div class="trow"><span class="tn">Параметрлер</span><span class="tv">~200B+</span></div>
+        <div class="trow"><span class="tn">Архитектура</span><span class="tv">Transformer</span></div>
+        <div class="trow"><span class="tn">Контекст</span><span class="tv">200K токен</span></div>
+        <div class="trow"><span class="tn">Жасаушы</span><span class="tv">Anthropic</span></div>
+        <div class="trow"><span class="tn">API нұсқасы</span><span class="tv">2023-06-01</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="cont">
+      <div class="sl">// Жоба архитектурасы</div>
+      <h2 class="st">Smart Helper қалай жұмыс істейді?</h2>
+      <div class="steps-sci">
+        <div class="step-sci">
+          <div class="step-sci-n">01</div>
+          <div><strong>Пайдаланушы сұрақ жазады</strong><p>Браузерде жазылған мәтін JavaScript арқылы өңделеді</p></div>
+        </div>
+        <div class="step-sci">
+          <div class="step-sci-n">02</div>
+          <div><strong>API сұранысы жіберіледі</strong><p>fetch() арқылы Anthropic серверіне POST сұранысы жіберіледі, таңдалған режим system prompt ретінде қосылады</p></div>
+        </div>
+        <div class="step-sci">
+          <div class="step-sci-n">03</div>
+          <div><strong>Claude моделі өңдейді</strong><p>LLM модель контексті талдап, ең дәл жауапты генерациялайды</p></div>
+        </div>
+        <div class="step-sci">
+          <div class="step-sci-n">04</div>
+          <div><strong>Жауап қайтарылады</strong><p>JSON форматындағы жауап браузерге келіп, экранда көрсетіледі. Тіркелген пайдаланушыларда Firebase-ке сақталады</p></div>
+        </div>
+        <div class="step-sci">
+          <div class="step-sci-n">05</div>
+          <div><strong>Пайдаланушы бағалайды</strong><p>👍/👎 бағасы localStorage және Firebase-ке жазылып, статистика бетінде қорытындыланады</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer"><div class="fin">
+    <div class="logo"><span class="ldot"></span>Smart<span class="lac">Helper</span></div>
+    <div class="flinks">
+      <button onclick="go('home')">Басты</button><button onclick="go('chat')">Чат</button><button onclick="go('about')">Туралы</button>
+    </div>
+    <p class="fcopy">© 2025 Smart Helper</p>
+  </div></footer>
+</div>
+
+<!-- =========================================================
+     ABOUT
+========================================================= -->
+<div class="page" id="pg-about">
+  <section class="sec" style="padding-top:60px">
+    <div class="cont" style="text-align:center">
+      <div class="sl au">// Жоба туралы</div>
+      <h1 class="hh1 au d1" style="font-size:clamp(2rem,5vw,3.2rem)">Smart <span class="grad">Helper</span></h1>
+      <p class="hsub au d2">Ғылыми жоба — 2025</p>
+    </div>
+  </section>
+  <section class="sec" style="padding-top:20px">
+    <div class="cont about-grid">
+      <div class="atext">
+        <div class="sl">// Мақсат</div>
+        <h2 class="st" style="font-size:clamp(1.4rem,2.5vw,2rem)">Неге жасалды?</h2>
+        <p>«Smart Helper» — мектеп оқушылары мен студенттерге арналған жасанды интеллект негізіндегі оқу серігі. Негізгі мақсат: білім алушыларға <strong>қазақ тілінде</strong> ақылды, қолжетімді көмекші беру.</p>
+        <p>Бүгінгі таңда AI технологиялары тез дамып жатыр, бірақ қазақ тіліндегі AI контент өте аз. Жоба осы олқылықты толтырады.</p>
+      </div>
+      <div class="tcard">
+        <div class="sl" style="margin-bottom:16px">// Технологиялар</div>
+        <div class="trow"><span class="tn">Frontend</span><span class="tv">HTML · CSS · JS (SPA)</span></div>
+        <div class="trow"><span class="tn">AI Engine</span><span class="tv ac">Claude API</span></div>
+        <div class="trow"><span class="tn">Auth</span><span class="tv">Firebase Auth</span></div>
+        <div class="trow"><span class="tn">Database</span><span class="tv">Firebase RT DB</span></div>
+        <div class="trow"><span class="tn">Hosting</span><span class="tv">GitHub Pages</span></div>
+      </div>
+    </div>
+  </section>
+  <section class="sec" style="padding-top:0">
+    <div class="cont">
+      <div class="sl">// Жоба мүмкіндіктері</div>
+      <h2 class="st">Не бар?</h2>
+      <div class="af-grid">
+        <div class="afi"><span class="afic">✅</span><div><strong>6 бет — бір файл</strong><p>SPA архитектурасы</p></div></div>
+        <div class="afi"><span class="afic">✅</span><div><strong>4 AI чат режимі</strong><p>Жалпы, математика, тарих, ғылым</p></div></div>
+        <div class="afi"><span class="afic">✅</span><div><strong>4 AI Құрал</strong><p>Қысқарту, аударма, түзету, идея</p></div></div>
+        <div class="afi"><span class="afic">✅</span><div><strong>Жауап бағалау</strong><p>👍/👎 + статистика диаграммасы</p></div></div>
+        <div class="afi"><span class="afic">✅</span><div><strong>Firebase Auth</strong><p>Email + Google OAuth</p></div></div>
+        <div class="afi"><span class="afic">✅</span><div><strong>Чат тарихы</strong><p>Firebase Realtime DB</p></div></div>
+        <div class="afi"><span class="afic">✅</span><div><strong>Күңгірт/Жарық тема</strong><p>localStorage-ке сақталады</p></div></div>
+        <div class="afi"><span class="afic">✅</span><div><strong>Ғылыми бөлім</strong><p>AI архитектурасы түсіндірмесі</p></div></div>
+      </div>
+    </div>
+  </section>
+  <footer class="footer"><div class="fin">
+    <div class="logo"><span class="ldot"></span>Smart<span class="lac">Helper</span></div>
+    <div class="flinks">
+      <button onclick="go('home')">Басты</button><button onclick="go('chat')">Чат</button>
+      <button onclick="go('tools')">Құралдар</button><button onclick="go('science')">Ғылым</button>
+    </div>
+    <p class="fcopy">© 2025 Smart Helper · Ғылыми жоба</p>
+  </div></footer>
+</div>
+
+<!-- =========================================================
+     AUTH
+========================================================= -->
+<div class="page" id="pg-auth">
+  <div class="awrap">
+    <div class="hgrid"></div>
+    <div class="acard au">
+      <div class="alogo">🤖</div>
+      <h1 class="atitle" id="atitle">Кіру</h1>
+      <p class="asub" id="asub">Аккаунтыңызға кіріңіз</p>
+      <div class="atabs">
+        <button class="atab on" id="tabL" onclick="atab('login')">Кіру</button>
+        <button class="atab"    id="tabR" onclick="atab('register')">Тіркелу</button>
+      </div>
+      <div id="fL">
+        <div class="fg"><label class="fl">Email</label><input class="fi" id="lE" type="email" placeholder="email@example.com"></div>
+        <div class="fg"><label class="fl">Құпия сөз</label><input class="fi" id="lP" type="password" placeholder="••••••••"></div>
+        <div class="ferr" id="lErr"></div>
+        <button class="bpri fw" id="lBtn" onclick="doLogin()">Кіру</button>
+      </div>
+      <div id="fR" style="display:none">
+        <div class="fg"><label class="fl">Атыңыз</label><input class="fi" id="rN" type="text" placeholder="Аты-жөні"></div>
+        <div class="fg"><label class="fl">Email</label><input class="fi" id="rE" type="email" placeholder="email@example.com"></div>
+        <div class="fg"><label class="fl">Құпия сөз</label><input class="fi" id="rP" type="password" placeholder="Кемінде 6 символ"></div>
+        <div class="ferr" id="rErr"></div>
+        <button class="bpri fw" id="rBtn" onclick="doReg()">Тіркелу</button>
+      </div>
+      <div class="adiv"><span>немесе</span></div>
+      <button class="bgoogle" onclick="doGoogle()">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Google арқылы кіру
+      </button>
+      <p class="asw" id="asw">Аккаунт жоқ па? <a onclick="atab('register')">Тіркелу</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+/* ============================================================
+   CONFIG — өз деректеріңізді енгізіңіз
+============================================================ */
+firebase.initializeApp({
+  apiKey:            "AIzaSyCQ_u4iZobLlNswT6Dp55nG7xp2rlcw3kg",
+  authDomain:        "smart-helper-94c93.firebaseapp.com",
+  databaseURL:       "https://smart-helper-94c93-default-rtdb.firebaseio.com",
+  projectId:         "smart-helper-94c93",
+  storageBucket:     "smart-helper-94c93.firebasestorage.app",
+  messagingSenderId: "1095857328539",
+  appId:             "1:1095857328539:web:a30b503979e43b231e913e"
+});
+const auth = firebase.auth();
+const db   = firebase.database();
+const CLAUDE = 'YOUR_CLAUDE_API_KEY'; // sk-ant-...
+
+/* ============================================================
+   THEME
+============================================================ */
+const tbtn = document.getElementById('tbtn');
+const setTheme = t => {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('sh-t', t);
+  tbtn.textContent = t === 'dark' ? '☀️' : '🌙';
+};
+setTheme(localStorage.getItem('sh-t') || 'dark');
+tbtn.onclick = () => setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+
+/* ============================================================
+   ROUTER
+============================================================ */
+function go(page, sub) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.chatwrap').forEach(p => p.classList.remove('on'));
+  if (page === 'chat') {
+    document.getElementById('pg-chat').classList.add('on');
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.getElementById('pg-' + page).classList.add('on');
+    document.body.style.overflow = '';
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('.nb[data-p]').forEach(b => b.classList.toggle('on', b.dataset.p === page));
+  if (page === 'auth' && sub) atab(sub);
+  if (page === 'stats') renderStats();
+}
+
+/* ============================================================
+   AUTH STATE
+============================================================ */
+auth.onAuthStateChanged(user => {
+  document.getElementById('anav').style.display  = user ? 'none'  : 'flex';
+  document.getElementById('unav').style.display  = user ? 'flex'  : 'none';
+  if (user) {
+    document.getElementById('ubadge').textContent = user.displayName || user.email.split('@')[0];
+    loadHistory();
+  } else clearHistUI();
+});
+document.getElementById('loutbtn').onclick = () => auth.signOut();
+
+/* ============================================================
+   AUTH FORMS
+============================================================ */
+function atab(tab) {
+  const isL = tab === 'login';
+  document.getElementById('tabL').classList.toggle('on', isL);
+  document.getElementById('tabR').classList.toggle('on', !isL);
+  document.getElementById('fL').style.display = isL ? 'block' : 'none';
+  document.getElementById('fR').style.display = isL ? 'none'  : 'block';
+  document.getElementById('atitle').textContent = isL ? 'Кіру' : 'Тіркелу';
+  document.getElementById('asub').textContent   = isL ? 'Аккаунтыңызға кіріңіз' : 'Жаңа аккаунт жасаңыз';
+  document.getElementById('asw').innerHTML = isL
+    ? 'Аккаунт жоқ па? <a onclick="atab(\'register\')">Тіркелу</a>'
+    : 'Аккаунт бар ма? <a onclick="atab(\'login\')">Кіру</a>';
+}
+async function doLogin() {
+  const e=document.getElementById('lE').value.trim(), p=document.getElementById('lP').value;
+  const err=document.getElementById('lErr'); err.textContent='';
+  if(!e||!p){err.textContent='Толтырыңыз';return;}
+  setbl('lBtn',true,'Кіру');
+  try{await auth.signInWithEmailAndPassword(e,p);go('chat');}
+  catch(ex){err.textContent=fberr(ex.code);}
+  setbl('lBtn',false,'Кіру');
+}
+async function doReg() {
+  const n=document.getElementById('rN').value.trim(), e=document.getElementById('rE').value.trim(), p=document.getElementById('rP').value;
+  const err=document.getElementById('rErr'); err.textContent='';
+  if(!n||!e||!p){err.textContent='Барлық өрісті толтырыңыз';return;}
+  if(p.length<6){err.textContent='Кемінде 6 символ';return;}
+  setbl('rBtn',true,'Тіркелу');
+  try{const c=await auth.createUserWithEmailAndPassword(e,p);await c.user.updateProfile({displayName:n});go('chat');}
+  catch(ex){err.textContent=fberr(ex.code);}
+  setbl('rBtn',false,'Тіркелу');
+}
+async function doGoogle(){
+  try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());go('chat');}
+  catch(ex){document.getElementById('lErr').textContent=fberr(ex.code);}
+}
+const fberr=c=>({'auth/user-not-found':'Email тіркелмеген','auth/wrong-password':'Қате құпия сөз',
+  'auth/email-already-in-use':'Email бұрын тіркелген','auth/weak-password':'Сөз тым қарапайым',
+  'auth/invalid-email':'Email форматы дұрыс емес','auth/popup-closed-by-user':'Жабылды'})[c]||'Қате орын алды';
+const setbl=(id,l,t)=>{const b=document.getElementById(id);b.disabled=l;b.textContent=l?'Күте тұрыңыз...':t;};
+
+/* ============================================================
+   CHAT
+============================================================ */
+let msgs=[], chatId=null, hist=[], curMode='general';
+const msa=document.getElementById('msa');
+const cta=document.getElementById('cta');
+const sndbtn=document.getElementById('sndbtn');
+
+const MODES = {
+  general: 'Сен — Smart Helper деп аталатын ақылды оқу серігісің. Қазақ тілінде жауап бер. Анық, пайдалы, ынталандырушы бол.',
+  math:    'Сен — математика пәнінің ақылды мұғалімісің. Есептерді қадамбе-қадам түсіндір. Формулаларды қазақша жаз. Тек математика туралы жауап бер.',
+  history: 'Сен — тарих пәнінің сарапшысысың. Тарихи оқиғаларды, тұлғаларды, мерзімдерді дәл және қызықты жеткіз. Қазақстан тарихын ерекше атап өт.',
+  science: 'Сен — жаратылыстану ғылымдарының (физика, химия, биология) мұғалімісің. Ғылыми тұжырымдарды қарапайым, нақты түсіндір. Мысалдар мен тәжірибелер қолдан.',
+};
+
+function setMode(btn) {
+  document.querySelectorAll('.modesel').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  curMode = btn.dataset.mode;
+}
+
+sndbtn.onclick = sendMsg;
+cta.addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} });
+cta.addEventListener('input', () => { cta.style.height='auto'; cta.style.height=Math.min(cta.scrollHeight,140)+'px'; });
+document.getElementById('newbtn').onclick = newChat;
+document.getElementById('clrbtn').onclick = () => { if(confirm('Чатты тазалайсыз ба?')) newChat(); };
+document.getElementById('mobbtn').onclick = () => document.getElementById('csb').classList.toggle('open');
+
+function newChat() {
+  chatId=null; msgs=[];
+  msa.innerHTML=''; msa.appendChild(mkWelcome());
+  hlHist(); document.getElementById('csb').classList.remove('open');
+}
+
+function mkWelcome() {
+  const d=document.createElement('div'); d.className='welcome'; d.id='wlc';
+  d.innerHTML=`<div class="wico">🤖</div><h2>Сәлем! Мен Smart Helper</h2>
+    <p>Режим таңдап, сұрағыңызды жазыңыз.</p>
+    <div class="qps">
+      <button class="qp" onclick="qpu(this)">📐 sin(30°) = неше?</button>
+      <button class="qp" onclick="qpu(this)">📝 Эссе жазуға көмектес</button>
+      <button class="qp" onclick="qpu(this)">🌍 Қазақстан тарихы</button>
+      <button class="qp" onclick="qpu(this)">⚛️ Атом құрылысы</button>
+    </div>`;
+  return d;
+}
+
+function qpu(btn) { cta.value=btn.textContent.replace(/^[^\s]+\s/,'').trim(); cta.focus(); }
+
+async function sendMsg() {
+  const txt=cta.value.trim(); if(!txt||sndbtn.disabled) return;
+  document.getElementById('wlc')?.remove();
+  cta.value=''; cta.style.height='auto'; sndbtn.disabled=true;
+  msgs.push({role:'user',content:txt});
+  addBubble(txt,true);
+  const tid='t'+Date.now(); addTyping(tid);
+  // stats
+  addStat('q', curMode);
+  try {
+    const rep = await callClaude(txt);
+    rmEl(tid);
+    msgs.push({role:'assistant',content:rep});
+    addBubble(rep,false,true);
+    saveChat(txt);
+  } catch { rmEl(tid); addBubble('Кешіріңіз, қате орын алды.',false); }
+  sndbtn.disabled=false;
+}
+
+async function callClaude(txt) {
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':CLAUDE,'anthropic-version':'2023-06-01'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
+      system:MODES[curMode],messages:msgs})
+  });
+  const d=await r.json();
+  if(d.error) throw new Error(d.error.message);
+  return d.content[0].text;
+}
+
+function addBubble(txt, isUser, withRating=false) {
+  const wrap=document.createElement('div');
+  wrap.className='msg'+(isUser?' user':'');
+  const inner=`<div class="mav ${isUser?'uav':'aiav'}">${isUser?'Сіз':'AI'}</div>
+    <div class="msg-wrap">
+      <div class="mb ${isUser?'ub':'aib'}">${fmtTxt(txt)}</div>
+      ${!isUser&&withRating?`<div class="rate-row">
+        <button class="rbtn" onclick="rate(this,'good')">👍 Жақсы</button>
+        <button class="rbtn" onclick="rate(this,'bad')">👎 Нашар</button>
+      </div>`:''}
+    </div>`;
+  wrap.innerHTML=inner;
+  msa.appendChild(wrap); msa.scrollTop=msa.scrollHeight;
+}
+function addTyping(id){
+  const d=document.createElement('div');d.className='msg';d.id=id;
+  d.innerHTML=`<div class="mav aiav">AI</div><div class="mb aib typing"><span></span><span></span><span></span></div>`;
+  msa.appendChild(d);msa.scrollTop=msa.scrollHeight;
+}
+function rmEl(id){document.getElementById(id)?.remove();}
+
+/* ============================================================
+   RATING
+============================================================ */
+function rate(btn, type) {
+  const row = btn.closest('.rate-row');
+  row.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('good','bad'));
+  btn.classList.add(type);
+  addStat('r', type);
+  renderStats();
+}
+
+/* ============================================================
+   STATS
+============================================================ */
+const STAT_KEY = 'sh-stats';
+function getStats() {
+  try { return JSON.parse(localStorage.getItem(STAT_KEY)) || {total:0,today:0,good:0,bad:0,lastDate:'',subjects:{}}; }
+  catch { return {total:0,today:0,good:0,bad:0,lastDate:'',subjects:{}}; }
+}
+function saveStats(s) { localStorage.setItem(STAT_KEY, JSON.stringify(s)); }
+
+function addStat(type, val) {
+  const s = getStats();
+  const today = new Date().toDateString();
+  if (s.lastDate !== today) { s.today = 0; s.lastDate = today; }
+  if (type === 'q') {
+    s.total++; s.today++;
+    s.subjects[val] = (s.subjects[val] || 0) + 1;
+  } else if (type === 'r') {
+    if (val === 'good') s.good++; else s.bad++;
+  }
+  saveStats(s);
+}
+
+function renderStats() {
+  const s = getStats();
+  document.getElementById('stTotal').textContent = s.total;
+  document.getElementById('stToday').textContent = s.today;
+  document.getElementById('stGood').textContent  = s.good;
+  document.getElementById('stBad').textContent   = s.bad;
+  const tot = s.good + s.bad;
+  document.getElementById('rPct').textContent = tot ? Math.round(s.good/tot*100)+'%' : '–';
+  // streak
+  const streak = calcStreak();
+  document.getElementById('rStreak').textContent = streak;
+  // bar chart
+  const bc = document.getElementById('barChart');
+  bc.innerHTML = '';
+  const labels = {general:'Жалпы',math:'Математика',history:'Тарих',science:'Ғылым'};
+  const max = Math.max(...Object.values(s.subjects), 1);
+  Object.entries(labels).forEach(([k,l]) => {
+    const v = s.subjects[k] || 0;
+    const pct = Math.round(v/max*100);
+    bc.innerHTML += `<div class="bar-row">
+      <span class="bar-label">${l}</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <span class="bar-val">${v}</span>
+    </div>`;
+  });
+}
+
+function calcStreak() {
+  const s = getStats();
+  if (!s.lastDate) return 0;
+  const last = new Date(s.lastDate);
+  const today = new Date();
+  const diff = Math.floor((today - last) / 86400000);
+  return diff <= 1 ? (localStorage.getItem('sh-streak') || 1) : 0;
+}
+
+/* ============================================================
+   FIREBASE HISTORY
+============================================================ */
+function saveChat(first) {
+  const u=auth.currentUser; if(!u) return;
+  if(!chatId) chatId=db.ref(`chats/${u.uid}`).push().key;
+  const title=first.length>40?first.slice(0,40)+'…':first;
+  db.ref(`chats/${u.uid}/${chatId}`).set({title,messages:msgs,updatedAt:Date.now()});
+}
+function loadHistory() {
+  const u=auth.currentUser; if(!u) return;
+  db.ref(`chats/${u.uid}`).orderByChild('updatedAt').limitToLast(60)
+    .on('value',snap=>{hist=[];snap.forEach(c=>hist.unshift({id:c.key,...c.val()}));renderHist();});
+}
+function clearHistUI(){hist=[];renderHist();}
+function renderHist() {
+  const l=document.getElementById('hlist'), e=document.getElementById('hempty');
+  l.innerHTML='';
+  if(!hist.length){l.appendChild(e);return;}
+  hist.forEach(ch=>{
+    const d=document.createElement('div');
+    d.className='hi'+(ch.id===chatId?' on':'');
+    d.innerHTML=`<div class="hit">${esc(ch.title||'Сұхбат')}</div><div class="hid">${fmtDate(ch.updatedAt)}</div>`;
+    d.onclick=()=>{chatId=ch.id;msgs=ch.messages||[];msa.innerHTML='';msgs.forEach(m=>addBubble(m.content,m.role==='user'));hlHist();document.getElementById('csb').classList.remove('open');};
+    l.appendChild(d);
+  });
+}
+function hlHist(){document.querySelectorAll('.hi').forEach((el,i)=>el.classList.toggle('on',hist[i]?.id===chatId));}
+
+/* ============================================================
+   AI TOOLS
+============================================================ */
+async function runTool(type) {
+  const configs = {
+    sum:   { inId:'sumIn',   outId:'sumOut',   prompt: t => `Осы мәтінді 3-5 сөйлемге дейін қысқарт, негізгі ойды сақта:\n\n${t}` },
+    trans: { inId:'transIn', outId:'transOut', prompt: t => `Осы мәтінді ${document.getElementById('transLang').value} аудар, тек аударманы жаз:\n\n${t}` },
+    fix:   { inId:'fixIn',   outId:'fixOut',   prompt: t => `Осы мәтіндегі грамматикалық және стильдік қателерді түзет. Түзетілген нұсқаны ғана жаз:\n\n${t}` },
+    idea:  { inId:'ideaIn',  outId:'ideaOut',  prompt: t => `Осы тақырып бойынша 5 шығармашыл идея ұсын, нөмірлеп жаз:\n\n${t}` },
+  };
+  const cfg = configs[type];
+  const inp = document.getElementById(cfg.inId).value.trim();
+  const out = document.getElementById(cfg.outId);
+  if (!inp) { out.textContent='Мәтін енгізіңіз'; out.classList.add('show'); return; }
+  out.className='tc-result show';
+  out.innerHTML='<span class="tloading">Өңделуде...</span>';
+  try {
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':CLAUDE,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,
+        system:'Сен қазақ тілінде жұмыс істейтін AI көмекшісің. Тек сұралған тапсырманы орында.',
+        messages:[{role:'user',content:cfg.prompt(inp)}]})
+    });
+    const d=await r.json();
+    out.textContent=d.content?.[0]?.text||'Жауап алынбады';
+  } catch { out.textContent='Қате орын алды. API кілтін тексеріңіз.'; }
+}
+
+/* ============================================================
+   UTILS
+============================================================ */
+function fmtTxt(t){
+  return esc(t)
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/`(.*?)`/g,'<code style="background:var(--sf2);padding:2px 5px;border-radius:3px;font-size:.82em">$1</code>')
+    .replace(/\n/g,'<br>');
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtDate(ts){if(!ts)return'';const d=new Date(ts);return`${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;}
+
+/* ============================================================
+   BURGER
+============================================================ */
+document.getElementById('burger').onclick = () => document.getElementById('nlinks').classList.toggle('open');
+const s=document.createElement('style');
+s.textContent=`@media(max-width:680px){.nlinks.open{display:flex!important;flex-direction:column;position:fixed;top:var(--nav);left:0;right:0;background:var(--sf);border-bottom:1px solid var(--bd2);padding:8px 14px 14px;z-index:200}}`;
+document.head.appendChild(s);
+</script>
+</body>
+</html>
