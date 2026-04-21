@@ -1245,7 +1245,8 @@ tbtn.onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')===
 
 /* ROUTER */
 function go(page,sub){
-  if(page!=='auth'&&!auth.currentUser){showAuth();return}
+  if(page==='auth'){showAuth(sub);return}
+  if(!auth.currentUser){showAuth();return}
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.chatwrap').forEach(p=>p.classList.remove('on'));
   if(page==='chat'){
@@ -1257,12 +1258,11 @@ function go(page,sub){
     window.scrollTo(0,0);
   }
   document.querySelectorAll('.nb[data-p]').forEach(b=>b.classList.toggle('on',b.dataset.p===page));
-  if(page==='auth'&&sub)atab(sub);
+  document.getElementById('mainNav').classList.remove('hidden');
   if(page==='stats')renderStats();
   if(page==='flashcard')initFlashcards();
-  document.getElementById('mainNav').classList.toggle('hidden',page==='auth');
 }
-function showAuth(){
+function showAuth(sub){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.chatwrap').forEach(p=>p.classList.remove('on'));
   document.getElementById('pg-auth').classList.add('on');
@@ -1270,6 +1270,7 @@ function showAuth(){
   document.getElementById('mainNav').classList.add('hidden');
   document.querySelectorAll('.nb[data-p]').forEach(b=>b.classList.remove('on'));
   window.scrollTo(0,0);
+  if(sub)atab(sub);
 }
 
 /* AUTH STATE */
@@ -1282,7 +1283,6 @@ auth.onAuthStateChanged(user=>{
     // Тек auth бетінде тұрса ғана chat-қа өт
     const authVisible=document.getElementById('pg-auth').classList.contains('on');
     if(authVisible){
-      document.getElementById('mainNav').classList.remove('hidden');
       go('chat');
     }
   } else {
@@ -1332,7 +1332,9 @@ async function doGoogle(){
     // onAuthStateChanged автоматты go('chat') шақырады
   }
   catch(ex){
-    const errEl=document.getElementById('lErr');
+    // Белсенді формаға қате шығар
+    const activeTab=document.getElementById('tabL').classList.contains('on')?'lErr':'rErr';
+    const errEl=document.getElementById(activeTab);
     if(errEl)errEl.textContent=fberr(ex.code);
   }
 }
