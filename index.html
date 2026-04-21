@@ -681,8 +681,9 @@ body::after{
 .plan-content p{font-size:.79rem;color:var(--tx2);line-height:1.6}
 .plan-tag{display:inline-block;padding:2px 9px;border-radius:6px;font-size:.68rem;font-weight:600;font-family:'DM Mono',monospace;margin-top:5px}
 .tag-math{background:rgba(232,160,74,.1);color:var(--ac)}
-.tag-sci{background:rgba(107,191,142,.1);color:var(--ac3)}
-.tag-hist{background:rgba(212,133,90,.1);color:var(--ac2)}
+.tag-science{background:rgba(107,191,142,.1);color:var(--ac3)}
+.tag-history{background:rgba(212,133,90,.1);color:var(--ac2)}
+.tag-general{background:rgba(224,112,112,.1);color:var(--ac4)}
 .tag-gen{background:rgba(224,112,112,.1);color:var(--ac4)}
 
 /* QUIZ */
@@ -1272,19 +1273,22 @@ function showAuth(){
 }
 
 /* AUTH STATE */
-let _authReady=false;
 auth.onAuthStateChanged(user=>{
   document.getElementById('anav').style.display=user?'none':'flex';
   document.getElementById('unav').style.display=user?'flex':'none';
   if(user){
     document.getElementById('ubadge').textContent=user.displayName||user.email.split('@')[0];
     loadHistory();
-    if(!_authReady)go('chat');
+    // Тек auth бетінде тұрса ғана chat-қа өт
+    const authVisible=document.getElementById('pg-auth').classList.contains('on');
+    if(authVisible){
+      document.getElementById('mainNav').classList.remove('hidden');
+      go('chat');
+    }
   } else {
     clearHistUI();
     showAuth();
   }
-  _authReady=true;
 });
 document.getElementById('loutbtn').onclick=()=>auth.signOut().then(()=>showAuth());
 
@@ -1301,7 +1305,10 @@ async function doLogin(){
   const err=document.getElementById('lErr');err.textContent='';
   if(!e||!p){err.textContent='Толтырыңыз';return}
   setbl('lBtn',true,'Кіру');
-  try{await auth.signInWithEmailAndPassword(e,p);go('chat')}
+  try{
+    await auth.signInWithEmailAndPassword(e,p);
+    // onAuthStateChanged автоматты go('chat') шақырады
+  }
   catch(ex){err.textContent=fberr(ex.code)}
   setbl('lBtn',false,'Кіру');
 }
@@ -1311,13 +1318,23 @@ async function doReg(){
   if(!n||!e||!p){err.textContent='Барлық өрісті толтырыңыз';return}
   if(p.length<6){err.textContent='Кемінде 6 символ';return}
   setbl('rBtn',true,'Тіркелу');
-  try{const c=await auth.createUserWithEmailAndPassword(e,p);await c.user.updateProfile({displayName:n});go('chat')}
+  try{
+    const c=await auth.createUserWithEmailAndPassword(e,p);
+    await c.user.updateProfile({displayName:n});
+    // onAuthStateChanged автоматты go('chat') шақырады
+  }
   catch(ex){err.textContent=fberr(ex.code)}
   setbl('rBtn',false,'Тіркелу');
 }
 async function doGoogle(){
-  try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());go('chat')}
-  catch(ex){document.getElementById('lErr').textContent=fberr(ex.code)}
+  try{
+    await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    // onAuthStateChanged автоматты go('chat') шақырады
+  }
+  catch(ex){
+    const errEl=document.getElementById('lErr');
+    if(errEl)errEl.textContent=fberr(ex.code);
+  }
 }
 const fberr=c=>({'auth/user-not-found':'Email тіркелмеген','auth/wrong-password':'Қате құпия сөз','auth/email-already-in-use':'Email бұрын тіркелген','auth/weak-password':'Сөз тым қарапайым','auth/invalid-email':'Email форматы дұрыс емес','auth/popup-closed-by-user':'Жабылды'})[c]||'Қате орын алды';
 const setbl=(id,l,t)=>{const b=document.getElementById(id);b.disabled=l;b.textContent=l?'Күте тұрыңыз...':t};
@@ -1369,7 +1386,7 @@ async function sendMsg(){
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':CLAUDE,'anthropic-version':'2023-06-01'},
+      headers:{'Content-Type':'application/json','x-api-key':CLAUDE,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system:MODES[curMode],messages:msgs})
     });
     const d=await r.json();
@@ -1531,7 +1548,7 @@ async function runTool(type){
   if(!inp){out.textContent='Мәтін енгізіңіз';out.classList.add('show');return}
   out.className='tc-result show';out.innerHTML='<span class="tloading">Өңделуде...</span>';
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':CLAUDE,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:'Қазақ тілінде жауап бер.',messages:[{role:'user',content:cfg.prompt(inp)}]})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':CLAUDE,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:'Қазақ тілінде жауап бер.',messages:[{role:'user',content:cfg.prompt(inp)}]})});
     const d=await r.json();out.textContent=d.content?.[0]?.text||'Жауап алынбады';
   }catch{out.textContent='Қате орын алды.'}
 }
@@ -1552,13 +1569,14 @@ async function runPlanner(){
 Күніне: ${hours} сағат
 Тек JSON жаз: {"days":[{"day":1,"title":"тақырып","tasks":["тапсырма1","тапсырма2"],"subject":"math|science|history|general","hours":2}]}`;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':CLAUDE,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':CLAUDE,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
     const d=await r.json();const raw=d.content?.[0]?.text||'{}';
     const clean=raw.replace(/```json|```/g,'').trim();const parsed=JSON.parse(clean);
     if(parsed.days&&parsed.days.length){
       result.innerHTML='';
       parsed.days.forEach(day=>{
-        const tagClass='tag-'+(day.subject||'gen');
+        const subjectMap={'math':'math','science':'science','history':'history','general':'general'};
+        const tagClass='tag-'+(subjectMap[day.subject]||'gen');
         const item=document.createElement('div');item.className='plan-item';
         item.innerHTML=`<div class="plan-day"><div class="plan-day-n">${day.day}</div><div class="plan-day-l">күн</div></div>
           <div class="plan-content"><h4>${esc(day.title)}</h4><p>${(day.tasks||[]).map(t=>esc(t)).join(' · ')}</p>
@@ -1608,7 +1626,7 @@ async function genFlashcards(){
   const btn=document.getElementById('fcGenBtn');btn.disabled=true;btn.textContent='Жасалуда...';
   const prompt=`"${topic}" тақырыбы бойынша 6 flashcard жаса. Тек JSON:\n{"cards":[{"q":"сұрақ","a":"жауап"}]}`;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':CLAUDE,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':CLAUDE,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});
     const d=await r.json();const raw=d.content?.[0]?.text||'{}';
     const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
     if(parsed.cards&&parsed.cards.length){fcCards=parsed.cards;fcIdx=0;document.getElementById('fcProgress').textContent=`1 / ${fcCards.length}`;showCard();document.getElementById('fcGenTopic').value=''}
@@ -1624,7 +1642,7 @@ async function genQuiz(){
   const btn=document.getElementById('quizGenBtn');btn.disabled=true;btn.textContent='Жасалуда...';
   const prompt=`"${topic}" тақырыбы бойынша ${count} тест сұрағы. Тек JSON:\n{"questions":[{"q":"сұрақ","opts":["А","Б","В","Г"],"correct":0}]}`;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':CLAUDE,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':CLAUDE,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
     const d=await r.json();const parsed=JSON.parse((d.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());
     if(parsed.questions&&parsed.questions.length){quizQuestions=parsed.questions;quizCurrent=0;quizScore=0;document.getElementById('quizSetup').style.display='none';document.getElementById('quizActive').style.display='block';showQuizQ()}
   }catch{alert('Қате орын алды')}
